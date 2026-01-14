@@ -8,7 +8,7 @@ package chess;
  */
 public class ChessBoard {
 
-    ChessPiece[][] squares = new ChessPiece[8][8];
+    ChessPiece[][] grid = new ChessPiece[8][8];
     public ChessBoard() {
         
     }
@@ -20,7 +20,7 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        squares[position.getRow() - 1][position.getColumn() - 1] = piece; /* - 1 is the offset from 2D array 0-7 and chessboard's 1-8*/
+        grid[position.getRow() - 1][position.getColumn() - 1] = piece; /* - 1 is the offset from 2D array 0-7 and chessboard's 1-8*/
     }
 
     /**
@@ -31,7 +31,7 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        return squares[position.getRow() - 1][position.getColumn() - 1];
+        return grid[position.getRow() - 1][position.getColumn() - 1];
     }
 
     /**
