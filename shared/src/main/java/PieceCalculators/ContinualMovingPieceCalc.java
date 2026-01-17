@@ -20,7 +20,7 @@ public class ContinualMovingPieceCalc {
         List<ChessMove> moves = new ArrayList<>();
         int row = pos.getRow();
         int col = pos.getColumn();
-        ChessPiece rook = board.getPiece(pos);
+        ChessPiece piece = board.getPiece(pos);
         ChessPiece pathed_square_content = null;
         ChessPosition test_pos = null;
 
@@ -35,7 +35,7 @@ public class ContinualMovingPieceCalc {
                     moves.add(new ChessMove(pos, test_pos, null));
                     row_search += directions[i][0];
                     col_search += directions[i][1];
-                } else if (pathed_square_content.getTeamColor() != rook.getTeamColor()){ //elif square is an enemy, add move and stop searching
+                } else if (pathed_square_content.getTeamColor() != piece.getTeamColor()){ //elif square is an enemy, add move and stop searching
                     moves.add(new ChessMove(pos, test_pos, null));
                     search_cond = false;
                 } else {search_cond = false;} //else, stop searching this direction

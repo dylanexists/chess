@@ -19,8 +19,8 @@ public class QueenMoveCalculator implements PieceMoveCalculator {
                 {1, 0},
         };
 
-        ContinualMovingPieceCalc rookCalcMoves = new ContinualMovingPieceCalc(directions);
-        List<ChessMove> moves = rookCalcMoves.calcMovePaths(board, pos);
+        ContinualMovingPieceCalc queenCalcMoves = new ContinualMovingPieceCalc(directions);
+        List<ChessMove> moves = queenCalcMoves.calcMovePaths(board, pos);
 
         return moves;
     }

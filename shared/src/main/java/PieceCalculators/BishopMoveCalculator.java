@@ -15,8 +15,8 @@ public class BishopMoveCalculator implements PieceMoveCalculator {
                 {-1, -1}
         };
 
-        ContinualMovingPieceCalc rookCalcMoves = new ContinualMovingPieceCalc(directions);
-        List<ChessMove> moves = rookCalcMoves.calcMovePaths(board, pos);
+        ContinualMovingPieceCalc bishopCalcMoves = new ContinualMovingPieceCalc(directions);
+        List<ChessMove> moves = bishopCalcMoves.calcMovePaths(board, pos);
 
         return moves;
     }
