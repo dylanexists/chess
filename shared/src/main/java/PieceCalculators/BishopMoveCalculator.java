@@ -40,6 +40,9 @@ public class BishopMoveCalculator implements PieceMoveCalculator {
             }
         }
 
+        return moves;
+    }
+}
         /*
         //search right
         for (int c = col + 1; c <= 8; c++){
@@ -99,6 +102,4 @@ public class BishopMoveCalculator implements PieceMoveCalculator {
         }
         */
 
-        return moves;
-    }
-}
+
