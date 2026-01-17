@@ -78,6 +78,8 @@ public class ChessPiece {
         ChessPiece piece = board.getPiece(myPosition);
         if (piece.getPieceType() == PieceType.ROOK){
             return new RookMoveCalculator().calculateMoves(board, myPosition);
+        } else if (piece.getPieceType() == PieceType.KNIGHT){
+            return new KnightMoveCalculator().calculateMoves(board, myPosition);
         } else if (piece.getPieceType() == PieceType.BISHOP){
             return new BishopMoveCalculator().calculateMoves(board, myPosition);
         } else if (piece.getPieceType() == PieceType.QUEEN){
