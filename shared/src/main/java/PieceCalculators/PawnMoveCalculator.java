@@ -31,9 +31,9 @@ public class PawnMoveCalculator implements PieceMoveCalculator {
             pathed_square_content = board.getPiece(test_pos); //get the content of the pathed square
             if (pathed_square_content == null){ //if square is empty, add possible move
                 moves.add(new ChessMove(pos, test_pos, null));
-                if(color == ChessGame.TeamColor.WHITE && col == 2 || color == ChessGame.TeamColor.BLACK && col == 7){ //if on starting square
-                        ChessMove pawnMoveTwoSquares = moveTwoSquares(board, pos, row, col, color);
-                        if (pawnMoveTwoSquares != null){moves.add(pawnMoveTwoSquares);}
+                if(color == ChessGame.TeamColor.WHITE && row == 2 || color == ChessGame.TeamColor.BLACK && row == 7){ //if on starting square
+                        ChessMove initialMoveTwoSquares = moveTwoSquares(board, pos, row, col, color);
+                        if (initialMoveTwoSquares != null){moves.add(initialMoveTwoSquares);}
                     }
                 }
             }
