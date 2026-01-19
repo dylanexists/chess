@@ -30,10 +30,10 @@ public class KingMoveCalculator implements PieceMoveCalculator {
         for (int i = 0; i < directions.length; i++){ //for each possible piece direction
             int row_search = row + directions[i][0];
             int col_search = col + directions[i][1];
-            if (row_search >= 1 && row_search <= 8 && col_search >= 1 && col_search <= 8){ //while searching=true and possible move is on board
+            if (row_search >= 1 && row_search <= 8 && col_search >= 1 && col_search <= 8){ //if possible move is on board
                 test_pos = new ChessPosition(row_search, col_search);
                 pathed_square_content = board.getPiece(test_pos); //get the content of the pathed square
-                if (pathed_square_content == null || pathed_square_content.getTeamColor() != king.getTeamColor()){ //if square is empty, add move and continue searching
+                if (pathed_square_content == null || pathed_square_content.getTeamColor() != king.getTeamColor()){ //if square is empty or enemy piece, add move and finish
                     moves.add(new ChessMove(pos, test_pos, null));
                 }
             }

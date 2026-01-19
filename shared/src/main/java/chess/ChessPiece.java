@@ -76,7 +76,9 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         ChessPiece piece = board.getPiece(myPosition);
-        if (piece.getPieceType() == PieceType.ROOK){
+        if (piece.getPieceType() == PieceType.PAWN){
+            return new PawnMoveCalculator().calculateMoves(board, myPosition);
+        }else if (piece.getPieceType() == PieceType.ROOK){
             return new RookMoveCalculator().calculateMoves(board, myPosition);
         } else if (piece.getPieceType() == PieceType.KNIGHT){
             return new KnightMoveCalculator().calculateMoves(board, myPosition);
