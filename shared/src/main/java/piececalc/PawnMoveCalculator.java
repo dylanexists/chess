@@ -43,9 +43,9 @@ public class PawnMoveCalculator implements PieceMoveCalculator {
             if (pawn.getTeamColor() == ChessGame.TeamColor.WHITE) {
                 rowSearch = row + attackDirections[i][0]; //white pieces move up rows
             } else {rowSearch = row + (-1 * attackDirections[i][0]);} //black pieces move down rows
-            int col_search = col + attackDirections[i][1];
-            if (rowSearch >= 1 && rowSearch <= 8 && col_search >= 1 && col_search <= 8){
-                testPos = new ChessPosition(rowSearch, col_search);
+            int colSearch = col + attackDirections[i][1];
+            if (rowSearch >= 1 && rowSearch <= 8 && colSearch >= 1 && colSearch <= 8){
+                testPos = new ChessPosition(rowSearch, colSearch);
                 pathedSquareContent = board.getPiece(testPos); //get the content of the pathed square
                 if (pathedSquareContent!= null && pathedSquareContent.getTeamColor() != pawn.getTeamColor()){
                     promotionLogic(moves, rowSearch, color, pos, testPos);
@@ -59,14 +59,14 @@ public class PawnMoveCalculator implements PieceMoveCalculator {
     public ChessMove moveTwoSquares(ChessBoard board, ChessPosition pos, int row, int col, ChessGame.TeamColor color){
         int twoMoveSearch;
         ChessPiece pathedSquareContent = null;
-        ChessPosition test_pos = null;
+        ChessPosition testPos = null;
          if (color == ChessGame.TeamColor.WHITE) {
              twoMoveSearch = row + 2;
          } else {twoMoveSearch = row - 2;}
-        test_pos = new ChessPosition(twoMoveSearch, col);
-        pathedSquareContent = board.getPiece(test_pos); //get the content of the pathed square
+        testPos = new ChessPosition(twoMoveSearch, col);
+        pathedSquareContent = board.getPiece(testPos); //get the content of the pathed square
         if (pathedSquareContent == null){ //if square is empty, return possible move
-            return new ChessMove(pos, test_pos, null);
+            return new ChessMove(pos, testPos, null);
         } else{return null;} //return null if square is occupied
     }
 
@@ -74,14 +74,14 @@ public class PawnMoveCalculator implements PieceMoveCalculator {
         return color == ChessGame.TeamColor.WHITE && newRow == 8 || color == ChessGame.TeamColor.BLACK && newRow == 1;
     } //return true if pawn has moved to promotion square
 
-    public void promotionLogic(List<ChessMove> moves, int row_search, ChessGame.TeamColor color, ChessPosition start_pos, ChessPosition end_pos){
-        if (isPromotionSquare(row_search, color)) {
-            moves.add(new ChessMove(start_pos, end_pos, ChessPiece.PieceType.ROOK));
-            moves.add(new ChessMove(start_pos, end_pos, ChessPiece.PieceType.KNIGHT));
-            moves.add(new ChessMove(start_pos, end_pos, ChessPiece.PieceType.BISHOP));
-            moves.add(new ChessMove(start_pos, end_pos, ChessPiece.PieceType.QUEEN));
+    public void promotionLogic(List<ChessMove> moves, int rowSearch, ChessGame.TeamColor color, ChessPosition startPos, ChessPosition endPos){
+        if (isPromotionSquare(rowSearch, color)) {
+            moves.add(new ChessMove(startPos, endPos, ChessPiece.PieceType.ROOK));
+            moves.add(new ChessMove(startPos, endPos, ChessPiece.PieceType.KNIGHT));
+            moves.add(new ChessMove(startPos, endPos, ChessPiece.PieceType.BISHOP));
+            moves.add(new ChessMove(startPos, endPos, ChessPiece.PieceType.QUEEN));
         } else {
-            moves.add(new ChessMove(start_pos, end_pos, null));
+            moves.add(new ChessMove(startPos, endPos, null));
         }
     }
 }
