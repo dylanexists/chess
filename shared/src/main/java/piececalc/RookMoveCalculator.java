@@ -1,4 +1,4 @@
-package PieceCalculators;
+package piececalc;
 
 import chess.*;
 

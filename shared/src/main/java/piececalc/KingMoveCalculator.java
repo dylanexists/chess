@@ -1,4 +1,4 @@
-package PieceCalculators;
+package piececalc;
 
 import chess.*;
 
@@ -24,17 +24,17 @@ public class KingMoveCalculator implements PieceMoveCalculator {
         int row = pos.getRow();
         int col = pos.getColumn();
         ChessPiece king = board.getPiece(pos);
-        ChessPiece pathed_square_content = null;
-        ChessPosition test_pos = null;
+        ChessPiece pathedSquareContent = null;
+        ChessPosition testPos = null;
 
         for (int i = 0; i < directions.length; i++){ //for each possible piece direction
-            int row_search = row + directions[i][0];
-            int col_search = col + directions[i][1];
-            if (row_search >= 1 && row_search <= 8 && col_search >= 1 && col_search <= 8){ //if possible move is on board
-                test_pos = new ChessPosition(row_search, col_search);
-                pathed_square_content = board.getPiece(test_pos); //get the content of the pathed square
-                if (pathed_square_content == null || pathed_square_content.getTeamColor() != king.getTeamColor()){ //if square is empty or enemy piece, add move and finish
-                    moves.add(new ChessMove(pos, test_pos, null));
+            int rowSearch = row + directions[i][0];
+            int colSearch = col + directions[i][1];
+            if (rowSearch >= 1 && rowSearch <= 8 && colSearch >= 1 && colSearch <= 8){ //if possible move is on board
+                testPos = new ChessPosition(rowSearch, colSearch);
+                pathedSquareContent = board.getPiece(testPos); //get the content of the pathed square
+                if (pathedSquareContent == null || pathedSquareContent.getTeamColor() != king.getTeamColor()){
+                    moves.add(new ChessMove(pos, testPos, null)); //if square is empty or enemy piece, add move and finish
                 }
             }
         }
