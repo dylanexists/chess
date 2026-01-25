@@ -79,12 +79,10 @@ public class ChessGame {
         ChessPiece currentPiece = board.getPiece(startPosition);
         if (currentPiece == null){return null;}
         TeamColor color = currentPiece.getTeamColor();
-
         Collection<ChessMove> pieceMoves = currentPiece.pieceMoves(board, startPosition);
         List<ChessMove> validMoves = new ArrayList<>();
         for (ChessMove move : pieceMoves){
             ChessBoard clonedBoard = board.clone();
-            //change our test piece's position from current position to move position
             movePieceHelper(clonedBoard, move);
             if (! isInCheck(color, clonedBoard)){
                 validMoves.add(move);
@@ -101,18 +99,21 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPosition startPos = move.getStartPosition();
-        ChessPosition endPos = move.getEndPosition();
-        ChessPiece currentPiece = board.getPiece(startPos);
+        ChessPiece movingPiece = board.getPiece(startPos);
+        if (movingPiece == null || movingPiece.getTeamColor() != turn) {throw new InvalidMoveException("Move isn't valid:" + move);}
         Collection<ChessMove> validMovesOfPiece = validMoves(startPos);
-        if (validMovesOfPiece == null) {throw new InvalidMoveException("Move isn't valid:" + move);}
         if (validMovesOfPiece.contains(move)){
             movePieceHelper(board, move);
+            if (turn == TeamColor.WHITE) {  //switch turns
+                turn = TeamColor.BLACK;
+            } else {turn = TeamColor.WHITE;}
         } else {
             throw new InvalidMoveException("Move isn't valid:" + move);
         }
     }
 
     public void movePieceHelper(ChessBoard board, ChessMove move){
+        //change our piece's position from current position to move position, and promote if specified
         ChessPosition startPos = move.getStartPosition();
         ChessPosition endPos = move.getEndPosition();
         ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
