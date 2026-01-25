@@ -1,6 +1,9 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -10,8 +13,35 @@ import java.util.Collection;
  */
 public class ChessGame {
 
-    public ChessGame() {
+    private ChessBoard board;
+    private TeamColor turn;
 
+    public ChessGame() {
+        board = new ChessBoard();
+        board.resetBoard();
+        turn = TeamColor.WHITE;
+    }
+
+    @Override
+    public String toString() {
+        return "ChessGame{" +
+                "board=" + board +
+                ", turn=" + turn +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessGame chessGame = (ChessGame) o;
+        return Objects.equals(board, chessGame.board) && turn == chessGame.turn;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(board, turn);
     }
 
     /**
@@ -66,7 +96,26 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        List<ChessPosition> opponentReachablePositions = new ArrayList<>();
+        ChessPosition kingPos = new ChessPosition(0, 0); //default position that doesn't exist
+        ChessPosition testPos;
+        ChessPiece testPiece;
+        for (int r = 1; r <= 8; r++) {
+            for (int c = 1; c <= 8; c++) {
+                testPos = new ChessPosition(r, c);
+                testPiece = board.getPiece(testPos);
+                if (testPiece != null){
+                    if (testPiece.getTeamColor() != teamColor) {
+                        for (ChessMove move : testPiece.pieceMoves(board, testPos)) {
+                            opponentReachablePositions.add(move.getEndPosition());
+                        }
+                    } else if (testPiece.getTeamColor() == teamColor && testPiece.getPieceType() == ChessPiece.PieceType.KING) {
+                        kingPos = testPos; //in any game of chess, the king should always be on the board, so we should always reach this assignment
+                    }
+                }
+            }
+        }
+        return opponentReachablePositions.contains(kingPos);
     }
 
     /**
@@ -96,7 +145,7 @@ public class ChessGame {
      * @param board the new board to use
      */
     public void setBoard(ChessBoard board) {
-        throw new RuntimeException("Not implemented");
+        this.board = board;
     }
 
     /**
