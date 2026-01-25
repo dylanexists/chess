@@ -57,7 +57,7 @@ public class ChessGame {
      * @param team the team whose turn it is
      */
     public void setTeamTurn(TeamColor team) {
-        throw new RuntimeException("Not implemented");
+        turn = team;
     }
 
     /**
@@ -76,7 +76,27 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        ChessPiece currentPiece = board.getPiece(startPosition);
+        if (currentPiece == null){return null;}
+        TeamColor color = currentPiece.getTeamColor();
+
+        Collection<ChessMove> pieceMoves = currentPiece.pieceMoves(board, startPosition);
+        List<ChessMove> validMoves = new ArrayList<>();
+        for (ChessMove move : pieceMoves){
+            ChessBoard clonedBoard = board.clone();
+            ChessPosition testPieceStartPos = move.getStartPosition();
+            ChessPosition testPieceEndPos = move.getEndPosition();
+            //change our test piece's position from current position to move position
+            clonedBoard.grid[testPieceEndPos.getRow()-1][testPieceEndPos.getColumn()-1] =
+                    clonedBoard.grid[testPieceStartPos.getRow()-1][testPieceStartPos.getColumn()-1];
+            clonedBoard.grid[testPieceStartPos.getRow()-1][testPieceStartPos.getColumn()-1] = null;
+            if (! isInCheck(color, clonedBoard)){
+                validMoves.add(move);
+            }
+        }
+
+
+        return validMoves;
     }
 
     /**
@@ -86,7 +106,7 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+
     }
 
     /**
@@ -95,7 +115,7 @@ public class ChessGame {
      * @param teamColor which team to check for check
      * @return True if the specified team is in check
      */
-    public boolean isInCheck(TeamColor teamColor) {
+    public boolean isInCheck(TeamColor teamColor, ChessBoard board) {
         List<ChessPosition> opponentReachablePositions = new ArrayList<>();
         ChessPosition kingPos = new ChessPosition(0, 0); //default position that doesn't exist
         ChessPosition testPos;
@@ -116,6 +136,10 @@ public class ChessGame {
             }
         }
         return opponentReachablePositions.contains(kingPos);
+    }
+
+    public boolean isInCheck(TeamColor teamColor){ //method overload
+        return isInCheck(teamColor, board);
     }
 
     /**
@@ -154,6 +178,6 @@ public class ChessGame {
      * @return the chessboard
      */
     public ChessBoard getBoard() {
-        throw new RuntimeException("Not implemented");
+        return board;
     }
 }
