@@ -20,7 +20,7 @@ import java.util.Objects;
 public class ChessPiece implements Cloneable{
 
     private final ChessGame.TeamColor pieceColor;
-    private final PieceType type;
+    private PieceType type;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor = pieceColor;
@@ -83,6 +83,10 @@ public class ChessPiece implements Cloneable{
      */
     public PieceType getPieceType() {
         return type;
+    }
+
+    public void setPieceType(PieceType newType) {
+        type = newType;
     }
 
     /**

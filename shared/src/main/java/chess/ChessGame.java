@@ -84,12 +84,8 @@ public class ChessGame {
         List<ChessMove> validMoves = new ArrayList<>();
         for (ChessMove move : pieceMoves){
             ChessBoard clonedBoard = board.clone();
-            ChessPosition testPieceStartPos = move.getStartPosition();
-            ChessPosition testPieceEndPos = move.getEndPosition();
             //change our test piece's position from current position to move position
-            clonedBoard.grid[testPieceEndPos.getRow()-1][testPieceEndPos.getColumn()-1] =
-                    clonedBoard.grid[testPieceStartPos.getRow()-1][testPieceStartPos.getColumn()-1];
-            clonedBoard.grid[testPieceStartPos.getRow()-1][testPieceStartPos.getColumn()-1] = null;
+            movePieceHelper(clonedBoard, move);
             if (! isInCheck(color, clonedBoard)){
                 validMoves.add(move);
             }
@@ -104,7 +100,27 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        ChessPosition startPos = move.getStartPosition();
+        ChessPosition endPos = move.getEndPosition();
+        ChessPiece currentPiece = board.getPiece(startPos);
+        Collection<ChessMove> validMovesOfPiece = validMoves(startPos);
+        if (validMovesOfPiece == null) {throw new InvalidMoveException("Move isn't valid:" + move);}
+        if (validMovesOfPiece.contains(move)){
+            movePieceHelper(board, move);
+        } else {
+            throw new InvalidMoveException("Move isn't valid:" + move);
+        }
+    }
 
+    public void movePieceHelper(ChessBoard board, ChessMove move){
+        ChessPosition startPos = move.getStartPosition();
+        ChessPosition endPos = move.getEndPosition();
+        ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
+        ChessPiece piece = board.getPiece(startPos);
+        if (promotionPiece != null) {piece.setPieceType(promotionPiece);}
+        board.grid[endPos.getRow()-1][endPos.getColumn()-1] =
+                board.grid[startPos.getRow()-1][startPos.getColumn()-1];
+        board.grid[startPos.getRow()-1][startPos.getColumn()-1] = null;
     }
 
     /**
