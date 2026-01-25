@@ -139,14 +139,13 @@ public class ChessGame {
             for (int c = 1; c <= 8; c++) {
                 testPos = new ChessPosition(r, c);
                 testPiece = board.getPiece(testPos);
-                if (testPiece != null){
-                    if (testPiece.getTeamColor() != teamColor) {
-                        for (ChessMove move : testPiece.pieceMoves(board, testPos)) {
-                            opponentReachablePositions.add(move.getEndPosition());
-                        }
-                    } else if (testPiece.getTeamColor() == teamColor && testPiece.getPieceType() == ChessPiece.PieceType.KING) {
-                        kingPos = testPos; //in any game of chess, the king should always be on the board, so we should always reach this assignment
+                if (testPiece == null){continue;}
+                if (testPiece.getTeamColor() != teamColor) {
+                    for (ChessMove move : testPiece.pieceMoves(board, testPos)) {
+                        opponentReachablePositions.add(move.getEndPosition());
                     }
+                } else if (testPiece.getTeamColor() == teamColor && testPiece.getPieceType() == ChessPiece.PieceType.KING) {
+                    kingPos = testPos; //in any game of chess, the king should always be on the board, so we should always reach this assignment
                 }
             }
         }
