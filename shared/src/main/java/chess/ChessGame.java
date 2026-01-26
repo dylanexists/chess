@@ -104,20 +104,11 @@ public class ChessGame {
             if (castlingMoves != null) {validMoves.addAll(castlingMoves);}
         }
         //add possible En Passant moves for pawn pieces
-        if (lastMoveWasEnPassant && lastChessMove != null){
-            ChessPosition lastMoveEndPos = lastChessMove.getEndPosition();
-            int lastMoveRow = lastMoveEndPos.getRow();
-            int lastMoveCol = lastMoveEndPos.getColumn();
-            ChessPosition oneLeftOfLastMove = new ChessPosition(lastMoveRow, lastMoveCol - 1);
-            ChessPosition oneRightOfLastMove = new ChessPosition(lastMoveRow, lastMoveCol + 1);
-            if (currentPiece.getPieceType() == ChessPiece.PieceType.PAWN &&
-                    (startPosition.equals(oneLeftOfLastMove) || startPosition.equals(oneRightOfLastMove))){
-                int pawnOffsetByColor;
-                if (color == TeamColor.WHITE) {pawnOffsetByColor = 1;} else {pawnOffsetByColor = -1;}
-                ChessPosition captureEnPassant = new ChessPosition(lastMoveRow + pawnOffsetByColor, lastMoveCol);
-                validMoves.add(new ChessMove(startPosition, captureEnPassant, null));
-            }
+        if (currentPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
+            ChessMove enPassantMove = enPassantHelper(currentPiece, startPosition);
+            if (enPassantMove != null) {validMoves.add(enPassantMove);}
         }
+
         return validMoves;
     }
 
@@ -163,6 +154,7 @@ public class ChessGame {
         removeCapturedPawnIfEnPassant(endPos, piece, type);
     }
 
+    //en passant methods 158-198
     public void removeCapturedPawnIfEnPassant(ChessPosition movedPieceEndPos, ChessPiece piece, ChessPiece.PieceType type){
         if (type == ChessPiece.PieceType.PAWN && lastChessMove != null) {
             TeamColor color = piece.getTeamColor();
@@ -187,6 +179,25 @@ public class ChessGame {
         return squaresMoved == 2;
     }
 
+    public ChessMove enPassantHelper(ChessPiece currentPiece, ChessPosition startPosition){
+        if (lastMoveWasEnPassant && lastChessMove != null){
+            ChessPosition lastMoveEndPos = lastChessMove.getEndPosition();
+            int lastMoveRow = lastMoveEndPos.getRow();
+            int lastMoveCol = lastMoveEndPos.getColumn();
+            ChessPosition oneLeftOfLastMove = new ChessPosition(lastMoveRow, lastMoveCol - 1);
+            ChessPosition oneRightOfLastMove = new ChessPosition(lastMoveRow, lastMoveCol + 1);
+            if (startPosition.equals(oneLeftOfLastMove) || startPosition.equals(oneRightOfLastMove)){
+                int pawnOffsetByColor;
+                TeamColor color = currentPiece.getTeamColor();
+                if (color == TeamColor.WHITE) {pawnOffsetByColor = 1;} else {pawnOffsetByColor = -1;}
+                ChessPosition captureEnPassant = new ChessPosition(lastMoveRow + pawnOffsetByColor, lastMoveCol);
+                return new ChessMove(startPosition, captureEnPassant, null);
+            }
+        }
+        return null;
+    }
+
+    //castling methods 200-297
     public void moveRookIfKingCastled(ChessPiece piece, ChessPosition startPos, ChessPosition endPos){
         if (piece.getPieceType() == ChessPiece.PieceType.KING){ //only perform if piece is king
             TeamColor color = piece.getTeamColor();
