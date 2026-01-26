@@ -15,12 +15,16 @@ public class ChessGame {
 
     private ChessBoard board;
     private TeamColor turn;
+    //castling public variables
     public boolean whiteKingMoved = false;
     public boolean whiteCol1RookMoved = false;
     public boolean whiteCol8RookMoved = false;
     public boolean blackKingMoved = false;
     public boolean blackCol1RookMoved = false;
     public boolean blackCol8RookMoved = false;
+    //detect if enpassant just happened, track last piece move, *if EP {go to EP piece, check left and right if pawn is there, add valid move}
+    public boolean lastMoveWasEnPassant = false;
+    public ChessMove lastChessMove = null;
 
     public ChessGame() {
         board = new ChessBoard();
@@ -99,6 +103,21 @@ public class ChessGame {
             Collection<ChessMove> castlingMoves = castlingHelper(color, startPosition);
             if (castlingMoves != null) {validMoves.addAll(castlingMoves);}
         }
+        //add possible En Passant moves for pawn pieces
+        if (lastMoveWasEnPassant && lastChessMove != null){
+            ChessPosition lastMoveEndPos = lastChessMove.getEndPosition();
+            int lastMoveRow = lastMoveEndPos.getRow();
+            int lastMoveCol = lastMoveEndPos.getColumn();
+            ChessPosition oneLeftOfLastMove = new ChessPosition(lastMoveRow, lastMoveCol - 1);
+            ChessPosition oneRightOfLastMove = new ChessPosition(lastMoveRow, lastMoveCol + 1);
+            if (currentPiece.getPieceType() == ChessPiece.PieceType.PAWN &&
+                    (startPosition.equals(oneLeftOfLastMove) || startPosition.equals(oneRightOfLastMove))){
+                int pawnOffsetByColor;
+                if (color == TeamColor.WHITE) {pawnOffsetByColor = 1;} else {pawnOffsetByColor = -1;}
+                ChessPosition captureEnPassant = new ChessPosition(lastMoveRow + pawnOffsetByColor, lastMoveCol);
+                validMoves.add(new ChessMove(startPosition, captureEnPassant, null));
+            }
+        }
         return validMoves;
     }
 
@@ -119,6 +138,8 @@ public class ChessGame {
             if (type == ChessPiece.PieceType.KING || type == ChessPiece.PieceType.ROOK){
                 updateCastlingPieces(movingPiece, startPos, type);
             }
+            lastMoveWasEnPassant = checkIfPawnMovedTwo(move, startPos, type);
+            lastChessMove = move;
             if (turn == TeamColor.WHITE) {  //switch turns
                 turn = TeamColor.BLACK;
             } else {turn = TeamColor.WHITE;}
@@ -133,11 +154,37 @@ public class ChessGame {
         ChessPosition endPos = move.getEndPosition();
         ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
         ChessPiece piece = board.getPiece(startPos);
+        ChessPiece.PieceType type = piece.getPieceType();
         if (promotionPiece != null) {piece.setPieceType(promotionPiece);}
         board.grid[endPos.getRow()-1][endPos.getColumn()-1] =
                 board.grid[startPos.getRow()-1][startPos.getColumn()-1];
         board.grid[startPos.getRow()-1][startPos.getColumn()-1] = null;
         moveRookIfKingCastled(piece, startPos, endPos);
+        removeCapturedPawnIfEnPassant(endPos, piece, type);
+    }
+
+    public void removeCapturedPawnIfEnPassant(ChessPosition movedPieceEndPos, ChessPiece piece, ChessPiece.PieceType type){
+        if (type == ChessPiece.PieceType.PAWN && lastChessMove != null) {
+            TeamColor color = piece.getTeamColor();
+            int pawnOffsetByColor;
+            if (color == TeamColor.WHITE) {pawnOffsetByColor = 1;} else {pawnOffsetByColor = -1;}
+            ChessPosition lastMoveEndPos = lastChessMove.getEndPosition();
+            int pawnRow = lastMoveEndPos.getRow();
+            int pawnCol = lastMoveEndPos.getColumn();
+            ChessPosition enPassantCaptureSquare = new ChessPosition(pawnRow + pawnOffsetByColor, pawnCol);
+            if (lastMoveWasEnPassant && movedPieceEndPos.equals(enPassantCaptureSquare)){
+                board.grid[pawnRow-1][pawnCol-1] = null;
+            }
+        }
+    }
+
+    public boolean checkIfPawnMovedTwo(ChessMove move, ChessPosition startPos, ChessPiece.PieceType type){
+        if (type != ChessPiece.PieceType.PAWN) {return false;}
+        ChessPosition endPos = move.getEndPosition();
+        int startRow = startPos.getRow();
+        int endRow = endPos.getRow();
+        int squaresMoved = Math.abs(startRow - endRow);
+        return squaresMoved == 2;
     }
 
     public void moveRookIfKingCastled(ChessPiece piece, ChessPosition startPos, ChessPosition endPos){
