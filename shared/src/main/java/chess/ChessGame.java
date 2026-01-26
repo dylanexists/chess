@@ -18,6 +18,9 @@ public class ChessGame {
     public boolean whiteKingMoved = false;
     public boolean whiteCol1RookMoved = false;
     public boolean whiteCol8RookMoved = false;
+    public boolean blackKingMoved = false;
+    public boolean blackCol1RookMoved = false;
+    public boolean blackCol8RookMoved = false;
 
     public ChessGame() {
         board = new ChessBoard();
@@ -93,7 +96,7 @@ public class ChessGame {
         }
         //add possible castling moves for king pieces
         if (currentPiece.getPieceType() == ChessPiece.PieceType.KING && !isInCheck(color, board)) {
-            Collection<ChessMove> castlingMoves = castlingHelper(color, currentPiece, startPosition);
+            Collection<ChessMove> castlingMoves = castlingHelper(color, startPosition);
             if (castlingMoves != null) {validMoves.addAll(castlingMoves);}
         }
         return validMoves;
@@ -160,54 +163,74 @@ public class ChessGame {
         //logic for castling
         if (piece.getTeamColor() == TeamColor.WHITE){
             if (!whiteKingMoved && type == ChessPiece.PieceType.KING){
-                whiteCol1RookMoved = true;
+                whiteKingMoved = true;
             } else if (!whiteCol1RookMoved && type == ChessPiece.PieceType.ROOK && startPos.equals(new ChessPosition(1, 1))){
                 whiteCol1RookMoved = true;
             } else if (!whiteCol8RookMoved && type == ChessPiece.PieceType.ROOK && startPos.equals(new ChessPosition(1, 8))) {
                 whiteCol8RookMoved = true;
             }
-        } else {}
+        } else {
+            if (!blackKingMoved && type == ChessPiece.PieceType.KING){
+                blackKingMoved = true;
+            } else if (!blackCol1RookMoved && type == ChessPiece.PieceType.ROOK && startPos.equals(new ChessPosition(8, 1))){
+                blackCol1RookMoved = true;
+            } else if (!blackCol8RookMoved && type == ChessPiece.PieceType.ROOK && startPos.equals(new ChessPosition(8, 8))) {
+                blackCol8RookMoved = true;
+            }
+        }
     }
 
-    public Collection<ChessMove> castlingHelper(TeamColor color, ChessPiece piece, ChessPosition kingStartPos){
+    public Collection<ChessMove> castlingHelper(TeamColor color, ChessPosition kingStartPos){
         Collection<ChessMove> castlingMoves = new ArrayList<>();
-        if (!whiteKingMoved) {
+        boolean kingMovedChecker;
+        boolean col1RookMovedChecker;
+        boolean col8RookMovedChecker;
+        int row;
+        //set appropriate castling checker variables according to TeamColor
+        if (color == TeamColor.WHITE){
+            kingMovedChecker = whiteKingMoved;
+            col1RookMovedChecker = whiteCol1RookMoved;
+            col8RookMovedChecker = whiteCol8RookMoved;
+            row = 1;
+        } else {
+            kingMovedChecker = blackKingMoved;
+            col1RookMovedChecker = blackCol1RookMoved;
+            col8RookMovedChecker = blackCol8RookMoved;
+            row = 8;
+        }
+        if (!kingMovedChecker) {
             //calculate if castling left is possible
-            if (!whiteCol1RookMoved){
-                ChessPosition oneLeftOfStartKing = new ChessPosition(1,4);
-                ChessPosition twoLeftOfStartKing = new ChessPosition(1,3);
-                if (board.getPiece(oneLeftOfStartKing) == null && board.getPiece(twoLeftOfStartKing) == null){ //no pieces in between
-                    ChessMove testMove = new ChessMove(kingStartPos, oneLeftOfStartKing, null);
-                    ChessBoard clonedBoard = board.clone();
-                    movePieceHelper(clonedBoard, testMove);
-                    if (!isInCheck(color, clonedBoard)) { //not in check moving one spot
-                        testMove = new ChessMove(oneLeftOfStartKing, twoLeftOfStartKing, null);
-                        movePieceHelper(clonedBoard, testMove);
-                        if (!isInCheck(color, clonedBoard)) { //not in check moving two spots
-                            castlingMoves.add(new ChessMove(kingStartPos, twoLeftOfStartKing, null));
-                        }
-                    }
-                }
+            if (!col1RookMovedChecker){
+                ChessPosition oneLeftOfStartKing = new ChessPosition(row,4);
+                ChessPosition twoLeftOfStartKing = new ChessPosition(row,3);
+                castlingMoves.add (checkAndAddKingCastlingMove(color, kingStartPos, oneLeftOfStartKing, twoLeftOfStartKing));
+
             }
             //calculate if castling right is possible
-            if (!whiteCol8RookMoved){
-                ChessPosition oneRightOfStartKing = new ChessPosition(1,6);
-                ChessPosition twoRightOfStartKing = new ChessPosition(1,7);
-                if (board.getPiece(oneRightOfStartKing) == null && board.getPiece(twoRightOfStartKing) == null){ //no pieces in between
-                    ChessMove testMove = new ChessMove(kingStartPos, oneRightOfStartKing, null);
-                    ChessBoard clonedBoard = board.clone();
-                    movePieceHelper(clonedBoard, testMove);
-                    if (!isInCheck(color, clonedBoard)) { //not in check moving one spot
-                        testMove = new ChessMove(oneRightOfStartKing, twoRightOfStartKing, null);
-                        movePieceHelper(clonedBoard, testMove);
-                        if (!isInCheck(color, clonedBoard)) { //not in check moving two spots
-                            castlingMoves.add(new ChessMove(kingStartPos, twoRightOfStartKing, null));
-                        }
-                    }
-                }
+            if (!col8RookMovedChecker){
+                ChessPosition oneRightOfStartKing = new ChessPosition(row,6);
+                ChessPosition twoRightOfStartKing = new ChessPosition(row,7);
+                castlingMoves.add (checkAndAddKingCastlingMove(color, kingStartPos, oneRightOfStartKing, twoRightOfStartKing));
             }
         }
         return castlingMoves;
+    }
+
+    public ChessMove checkAndAddKingCastlingMove(TeamColor color, ChessPosition kingStartPos, ChessPosition oneSquareOver, ChessPosition twoSquaresOver){
+        ChessMove kingCastledMove = null;
+        if (board.getPiece(oneSquareOver) == null && board.getPiece(twoSquaresOver) == null){ //no pieces in between
+            ChessMove testMove = new ChessMove(kingStartPos, oneSquareOver, null);
+            ChessBoard clonedBoard = board.clone();
+            movePieceHelper(clonedBoard, testMove);
+            if (!isInCheck(color, clonedBoard)) { //not in check moving one spot
+                testMove = new ChessMove(oneSquareOver, twoSquaresOver, null);
+                movePieceHelper(clonedBoard, testMove);
+                if (!isInCheck(color, clonedBoard)) { //not in check moving two spots
+                    kingCastledMove = new ChessMove(kingStartPos, twoSquaresOver, null);
+                }
+            }
+        }
+        return kingCastledMove;
     }
 
     /**
