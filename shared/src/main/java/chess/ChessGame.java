@@ -15,6 +15,9 @@ public class ChessGame {
 
     private ChessBoard board;
     private TeamColor turn;
+    public boolean whiteKingMoved = false;
+    public boolean whiteCol1RookMoved = false;
+    public boolean whiteCol8RookMoved = false;
 
     public ChessGame() {
         board = new ChessBoard();
@@ -122,6 +125,21 @@ public class ChessGame {
         board.grid[endPos.getRow()-1][endPos.getColumn()-1] =
                 board.grid[startPos.getRow()-1][startPos.getColumn()-1];
         board.grid[startPos.getRow()-1][startPos.getColumn()-1] = null;
+        //logic for castling
+        if (!whiteKingMoved && piece.getPieceType() == ChessPiece.PieceType.KING &&
+                piece.getTeamColor() == TeamColor.WHITE){
+            whiteCol1RookMoved = true;
+        } else if (!whiteCol1RookMoved && piece.getPieceType() == ChessPiece.PieceType.ROOK &&
+                piece.getTeamColor() == TeamColor.WHITE && startPos.equals(new ChessPosition(1, 1))){
+            whiteCol1RookMoved = true;
+        } else if (!whiteCol8RookMoved && piece.getPieceType() == ChessPiece.PieceType.ROOK &&
+                piece.getTeamColor() == TeamColor.WHITE && startPos.equals(new ChessPosition(1, 8))){
+            whiteCol8RookMoved = true;
+        }
+    }
+
+    public void castlingHelper(){
+
     }
 
     /**
