@@ -206,7 +206,7 @@ public class ChessGame {
                 if (!col1RookPos.equals(new ChessPosition(row, 1))) {return null;} //ensure that rook is in starting chess position
                 ChessPosition oneLeftOfStartKing = new ChessPosition(row,4);
                 ChessPosition twoLeftOfStartKing = new ChessPosition(row,3);
-                castlingMoves.add (checkAndAddKingCastlingMove(color, kingStartPos, oneLeftOfStartKing, twoLeftOfStartKing));
+                castlingMoves.add (checkAddKingCastleMove(color, kingStartPos, oneLeftOfStartKing, twoLeftOfStartKing));
 
             }
             //calculate if castling right is possible
@@ -215,13 +215,13 @@ public class ChessGame {
                 if (!col1RookPos.equals(new ChessPosition(row, 8))) {return null;} //ensure that rook is in starting chess position
                 ChessPosition oneRightOfStartKing = new ChessPosition(row,6);
                 ChessPosition twoRightOfStartKing = new ChessPosition(row,7);
-                castlingMoves.add (checkAndAddKingCastlingMove(color, kingStartPos, oneRightOfStartKing, twoRightOfStartKing));
+                castlingMoves.add (checkAddKingCastleMove(color, kingStartPos, oneRightOfStartKing, twoRightOfStartKing));
             }
         }
         return castlingMoves;
     }
 
-    public ChessMove checkAndAddKingCastlingMove(TeamColor color, ChessPosition kingStartPos, ChessPosition oneSquareOver, ChessPosition twoSquaresOver){
+    public ChessMove checkAddKingCastleMove(TeamColor color, ChessPosition kingStartPos, ChessPosition oneSquareOver, ChessPosition twoSquaresOver){
         ChessMove kingCastledMove = null;
         if (board.getPiece(oneSquareOver) == null && board.getPiece(twoSquaresOver) == null){ //no pieces in between
             ChessMove testMove = new ChessMove(kingStartPos, oneSquareOver, null);
