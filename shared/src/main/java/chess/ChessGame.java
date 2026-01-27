@@ -16,15 +16,15 @@ public class ChessGame {
     private ChessBoard board;
     private TeamColor turn;
     //castling public variables
-    public boolean whiteKingMoved = false;
-    public boolean whiteCol1RookMoved = false;
-    public boolean whiteCol8RookMoved = false;
-    public boolean blackKingMoved = false;
-    public boolean blackCol1RookMoved = false;
-    public boolean blackCol8RookMoved = false;
+    private boolean whiteKingMoved = false;
+    private boolean whiteCol1RookMoved = false;
+    private boolean whiteCol8RookMoved = false;
+    private boolean blackKingMoved = false;
+    private boolean blackCol1RookMoved = false;
+    private boolean blackCol8RookMoved = false;
     //detect if enpassant just happened, track last piece move, *if EP {go to EP piece, check left and right if pawn is there, add valid move}
-    public boolean lastMoveWasEnPassant = false;
-    public ChessMove lastChessMove = null;
+    private boolean lastMoveWasEnPassant = false;
+    private ChessMove lastChessMove = null;
 
     public ChessGame() {
         board = new ChessBoard();
@@ -139,7 +139,7 @@ public class ChessGame {
         }
     }
 
-    public void movePieceHelper(ChessBoard board, ChessMove move){
+    private void movePieceHelper(ChessBoard board, ChessMove move){
         //change our piece's position from current position to move position, and promote if specified
         ChessPosition startPos = move.getStartPosition();
         ChessPosition endPos = move.getEndPosition();
@@ -147,15 +147,14 @@ public class ChessGame {
         ChessPiece piece = board.getPiece(startPos);
         ChessPiece.PieceType type = piece.getPieceType();
         if (promotionPiece != null) {piece.setPieceType(promotionPiece);}
-        board.grid[endPos.getRow()-1][endPos.getColumn()-1] =
-                board.grid[startPos.getRow()-1][startPos.getColumn()-1];
-        board.grid[startPos.getRow()-1][startPos.getColumn()-1] = null;
+        board.addPiece(endPos, piece);
+        board.addPiece(startPos, null);
         moveRookIfKingCastled(piece, startPos, endPos);
         removeCapturedPawnIfEnPassant(endPos, piece, type);
     }
 
     //en passant methods 158-198
-    public void removeCapturedPawnIfEnPassant(ChessPosition movedPieceEndPos, ChessPiece piece, ChessPiece.PieceType type){
+    private void removeCapturedPawnIfEnPassant(ChessPosition movedPieceEndPos, ChessPiece piece, ChessPiece.PieceType type){
         if (type == ChessPiece.PieceType.PAWN && lastChessMove != null) {
             TeamColor color = piece.getTeamColor();
             int pawnOffsetByColor;
@@ -165,12 +164,12 @@ public class ChessGame {
             int pawnCol = lastMoveEndPos.getColumn();
             ChessPosition enPassantCaptureSquare = new ChessPosition(pawnRow + pawnOffsetByColor, pawnCol);
             if (lastMoveWasEnPassant && movedPieceEndPos.equals(enPassantCaptureSquare)){
-                board.grid[pawnRow-1][pawnCol-1] = null;
+                board.addPiece(lastMoveEndPos, null);
             }
         }
     }
 
-    public boolean checkIfPawnMovedTwo(ChessMove move, ChessPosition startPos, ChessPiece.PieceType type){
+    private boolean checkIfPawnMovedTwo(ChessMove move, ChessPosition startPos, ChessPiece.PieceType type){
         if (type != ChessPiece.PieceType.PAWN) {return false;}
         ChessPosition endPos = move.getEndPosition();
         int startRow = startPos.getRow();
@@ -179,7 +178,7 @@ public class ChessGame {
         return squaresMoved == 2;
     }
 
-    public ChessMove enPassantHelper(ChessPiece currentPiece, ChessPosition startPosition){
+    private ChessMove enPassantHelper(ChessPiece currentPiece, ChessPosition startPosition){
         if (lastMoveWasEnPassant && lastChessMove != null){
             ChessPosition lastMoveEndPos = lastChessMove.getEndPosition();
             int lastMoveRow = lastMoveEndPos.getRow();
@@ -198,7 +197,7 @@ public class ChessGame {
     }
 
     //castling methods 200-297
-    public void moveRookIfKingCastled(ChessPiece piece, ChessPosition startPos, ChessPosition endPos){
+    private void moveRookIfKingCastled(ChessPiece piece, ChessPosition startPos, ChessPosition endPos){
         if (piece.getPieceType() == ChessPiece.PieceType.KING){ //only perform if piece is king
             TeamColor color = piece.getTeamColor();
             int row;
@@ -217,7 +216,7 @@ public class ChessGame {
         }
     }
 
-    public void updateCastlingPieces (ChessPiece piece, ChessPosition startPos, ChessPiece.PieceType type){
+    private void updateCastlingPieces (ChessPiece piece, ChessPosition startPos, ChessPiece.PieceType type){
         //logic for castling
         if (piece.getTeamColor() == TeamColor.WHITE){
             if (!whiteKingMoved && type == ChessPiece.PieceType.KING){
@@ -238,7 +237,7 @@ public class ChessGame {
         }
     }
 
-    public Collection<ChessMove> castlingHelper(TeamColor color, ChessPosition kingStartPos){
+    private Collection<ChessMove> castlingHelper(TeamColor color, ChessPosition kingStartPos){
         Collection<ChessMove> castlingMoves = new ArrayList<>();
         boolean kingMovedChecker;
         boolean col1RookMovedChecker;
@@ -279,7 +278,7 @@ public class ChessGame {
         return castlingMoves;
     }
 
-    public ChessMove checkAddKingCastleMove(TeamColor color, ChessPosition kingStartPos, ChessPosition oneSquareOver, ChessPosition twoSquaresOver){
+    private ChessMove checkAddKingCastleMove(TeamColor color, ChessPosition kingStartPos, ChessPosition oneSquareOver, ChessPosition twoSquaresOver){
         ChessMove kingCastledMove = null;
         if (board.getPiece(oneSquareOver) == null && board.getPiece(twoSquaresOver) == null){ //no pieces in between
             ChessMove testMove = new ChessMove(kingStartPos, oneSquareOver, null);
@@ -302,7 +301,7 @@ public class ChessGame {
      * @param teamColor which team to check for check
      * @return True if the specified team is in check
      */
-    public boolean isInCheck(TeamColor teamColor, ChessBoard board) {
+    private boolean isInCheck(TeamColor teamColor, ChessBoard board) {
         List<ChessPosition> opponentReachablePositions = new ArrayList<>();
         ChessPosition kingPos = new ChessPosition(0, 0); //default position that doesn't exist
         ChessPosition testPos;
@@ -353,7 +352,7 @@ public class ChessGame {
         return !isInCheck(teamColor) && legalMoves.isEmpty();
     }
 
-    public List<ChessMove> checkLegalMoves (TeamColor teamColor){
+    private List<ChessMove> checkLegalMoves (TeamColor teamColor){
         List<ChessPosition> teamPiecePosition = new ArrayList<>();
         List<ChessMove> legalMoves = new ArrayList<>();
         ChessPosition testPos;
