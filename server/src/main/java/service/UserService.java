@@ -1,17 +1,23 @@
 package service;
 
 import dataaccess.DuplicateException;
-import dataaccess.MemoryUserDao;
+import dataaccess.AuthDao;
+import dataaccess.UserDao;
 import dataaccess.NotFoundException;
+import model.AuthData;
 import model.UserData;
 import service.request.RegisterRequest;
 import service.result.RegisterResult;
 
-public class UserService {
-    private final MemoryUserDao userDao;
+import java.util.UUID;
 
-    public UserService(MemoryUserDao userDao){
+public class UserService {
+    private final UserDao userDao;
+    private final AuthDao authDao;
+
+    public UserService(UserDao userDao, AuthDao authDao){
         this.userDao = userDao;
+        this.authDao = authDao;
     }
 
     public RegisterResult register(RegisterRequest request) {
@@ -22,17 +28,19 @@ public class UserService {
         if (username == null || password == null || email == null){ //Validate Inputs
             return new RegisterResult(null, null, "Missing Register Inputs");
         }
-        try { //Check if username is already taken
-            userDao.getUser(username);
+        if (userDao.existsUser(username)) { //Check if username is already taken
             return new RegisterResult(null, null, "This username is taken");
         }
-        catch (NotFoundException nfExcept) { //User not found, safe to create new User with given username
-            UserData newUser = new UserData(username, password, email);
+        else { //User not found, safe to create new User with given username
             try { //success case
-                userDao.createUser(newUser);
-                return new RegisterResult(username, "1234", null); //TODO, implement authToken logic
+                UserData newUser = new UserData(username, password, email);
+                userDao.createUser(newUser); //will try to create User
+                String token = UUID.randomUUID().toString();
+                AuthData newAuth = new AuthData(token, username);
+                authDao.createAuth(newAuth); //will try to create Auth
+                return new RegisterResult(username, token, null);
             }
-            catch (DuplicateException dExcept) { //User already exists (shouldn't happen, but we handle it)
+            catch (DuplicateException dExcept) { //User or Auth already exists (shouldn't happen, but we handle it)
                 return new RegisterResult(null, null, dExcept.toString());
             }
         }

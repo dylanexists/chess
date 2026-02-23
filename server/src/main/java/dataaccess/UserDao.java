@@ -9,4 +9,6 @@ public interface UserDao {
     UserData createUser(UserData u) throws DuplicateException;
 
     UserData getUser(String username) throws NotFoundException;
+
+    boolean existsUser(String username);
 }

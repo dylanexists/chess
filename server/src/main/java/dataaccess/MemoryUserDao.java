@@ -15,7 +15,7 @@ public class MemoryUserDao implements UserDao{
 
     @Override
     public UserData createUser(UserData u) throws DuplicateException {
-        if (users.containsKey(u.username())){
+        if (existsUser(u.username())){
             throw new DuplicateException("Username already exists");
         }
 
@@ -30,5 +30,10 @@ public class MemoryUserDao implements UserDao{
             throw new NotFoundException("UserData not found");
         }
         return user;
+    }
+
+    @Override
+    public boolean existsUser(String username){
+        return users.containsKey(username);
     }
 }
