@@ -1,6 +1,5 @@
 package service;
 
-import dataaccess.DataAccessException;
 import dataaccess.MemoryAuthDao;
 import dataaccess.MemoryUserDao;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,8 +10,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import service.request.RegisterRequest;
 import service.result.RegisterResult;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -54,4 +51,19 @@ class UserServiceTest {
             new RegisterRequest(null, null, null)
         );
     }
+
+    @Test
+    @DisplayName("Register Negative Test - User Already Exists")
+    public void registerFailUserAlreadyExists(){
+        RegisterRequest preExistingRequest =
+                new RegisterRequest("test123", "alreadyexists", "preexist@email.com");
+                service.register(preExistingRequest);
+        RegisterRequest testRequest =
+                new RegisterRequest("test123", "password1", "email@email.com");
+        RegisterResult result = service.register(testRequest);
+        assertNull(result.username());
+        assertNull(result.authToken());
+        assertEquals("This username is taken", result.message());
+    }
+
 }
