@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import service.request.RegisterRequest;
+import service.result.ClearResult;
 import service.result.RegisterResult;
 
 import java.util.stream.Stream;
@@ -20,6 +21,16 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         service = new UserService(new MemoryUserDao(), new MemoryAuthDao());
+    }
+
+    @Test
+    @DisplayName("Clear Test")
+    public void clearSuccess(){
+        service.register(new RegisterRequest("test123", "password1", "email1@email.com"));
+        service.register(new RegisterRequest("test246", "password2", "email2@email.com"));
+        service.register(new RegisterRequest("test369", "password3", "email3@email.com"));
+        ClearResult result = service.clear();
+        assertNull(result.message());
     }
 
     @Test

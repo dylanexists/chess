@@ -1,12 +1,10 @@
 package service;
 
-import dataaccess.DuplicateException;
-import dataaccess.AuthDao;
-import dataaccess.UserDao;
-import dataaccess.NotFoundException;
+import dataaccess.*;
 import model.AuthData;
 import model.UserData;
 import service.request.RegisterRequest;
+import service.result.ClearResult;
 import service.result.RegisterResult;
 
 import java.util.UUID;
@@ -43,6 +41,16 @@ public class UserService {
             catch (DuplicateException dExcept) { //User or Auth already exists (shouldn't happen, but we handle it)
                 return new RegisterResult(null, null, dExcept.toString());
             }
+        }
+    }
+    public ClearResult clear() {
+        try {
+            userDao.clearUsers();
+            authDao.clearAuths();
+            return new ClearResult(null);
+        }
+        catch (QueryException qExcept){
+            return new ClearResult(qExcept.toString());
         }
     }
 }

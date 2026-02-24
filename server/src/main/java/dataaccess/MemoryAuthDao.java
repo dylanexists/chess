@@ -11,7 +11,7 @@ public class MemoryAuthDao implements AuthDao{
 
     @Override
     public void clearAuths() throws QueryException {
-
+        authTokens.clear();
     }
 
     @Override
