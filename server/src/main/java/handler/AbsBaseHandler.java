@@ -9,8 +9,8 @@ public abstract class AbsBaseHandler<Request, Result> implements Handler<Request
     private final Gson gson;
     private final Class<Request> requestClass;
 
-    private AbsBaseHandler (Class<Request> requestClass){
-        this.gson = new Gson();
+    protected AbsBaseHandler (Gson gson, Class<Request> requestClass){
+        this.gson = gson;
         this.requestClass = requestClass;
     }
 
@@ -29,8 +29,12 @@ public abstract class AbsBaseHandler<Request, Result> implements Handler<Request
             return serialize(result);
         } catch (JsonSyntaxException e){
             return serialize(invalidJsonResponse());
+        } catch (Exception e) {
+            return serialize(internalError(e));
         }
     }
 
     protected abstract Result invalidJsonResponse();
+
+    protected abstract Result internalError(Exception e);
 }

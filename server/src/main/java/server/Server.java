@@ -1,5 +1,6 @@
 package server;
 
+import com.google.gson.Gson;
 import dataaccess.MemoryAuthDao;
 import dataaccess.MemoryUserDao;
 import handler.RegisterHandler;
@@ -13,22 +14,25 @@ public class Server {
     private final Javalin javalin;
 
     public Server() {
+        Gson gson = new Gson();
         var userDao = new MemoryUserDao();
         var authDao = new MemoryAuthDao();
         var userService = new UserService(userDao, authDao);
-        var registerHandler = new RegisterHandler(userService);
+        var registerHandler = new RegisterHandler(gson, userService);
 
         // Register your endpoints and exception handlers here.
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
                 .post("/user", ctx -> {
                     String body = ctx.body();
-                    String result = registerHandler.handleRegisterToJson(body);
+                    String resultJson = registerHandler.handle(body);
                     ctx.contentType("application/json");
-                    ctx.result(result);
+                    ctx.result(resultJson);
                 })
                 .delete("/db", ctx -> {
                     ClearResult result = userService.clear();
-                    ctx.json(result);
+                    String resultJson = new Gson().toJson(result);
+                    ctx.contentType("application/json");
+                    ctx.result(resultJson);
                 })
                 ;
     }

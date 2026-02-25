@@ -1,41 +1,33 @@
 package handler;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import service.UserService;
 import service.request.RegisterRequest;
 import service.result.RegisterResult;
 
-public class RegisterHandler {
+public class RegisterHandler
+        extends AbsBaseHandler<RegisterRequest, RegisterResult> {
 
     private final UserService userService;
-    private final Gson gson;
 
-    public RegisterHandler(UserService userService){
+    public RegisterHandler(Gson gson, UserService userService){
+        super(gson, RegisterRequest.class);
         this.userService = userService;
-        this.gson = new Gson();
     }
 
-    public RegisterRequest deserialize(String json) {
-        return gson.fromJson(json, RegisterRequest.class);
-    }
-
-    public String serialize(RegisterResult result) {
-        return gson.toJson(result);
-    }
-
-    public RegisterResult handleRegister(String json){
-        RegisterRequest request;
-        try {
-            request = deserialize(json);
-        } catch (JsonSyntaxException e){
-            return new RegisterResult(null, null, "Invalid JSON");
-        }
+    @Override
+    public RegisterResult handleRequest(RegisterRequest request) {
         return userService.register(request);
     }
 
-    public String handleRegisterToJson(String json){
-        RegisterResult result = handleRegister(json);
-        return serialize(result);
+    @Override
+    protected RegisterResult invalidJsonResponse() {
+        return new RegisterResult(null, null, "Invalid JSON");
     }
+
+    @Override
+    protected RegisterResult internalError(Exception e) {
+        return new RegisterResult(null, null, "Internal Server Error");
+    }
+
 }
