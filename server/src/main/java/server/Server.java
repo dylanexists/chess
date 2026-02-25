@@ -37,6 +37,12 @@ public class Server {
                     ctx.contentType("application/json");
                     ctx.result(resultJson);
                 })
+                .delete("/session", ctx -> {
+                    String body = ctx.body();
+                    String resultJson = logoutHandler.handle(body);
+                    ctx.contentType("application/json");
+                    ctx.result(resultJson);
+                })
                 .delete("/db", ctx -> {
                     ClearResult result = userService.clear();
                     String resultJson = new Gson().toJson(result);

@@ -4,9 +4,11 @@ import dataaccess.*;
 import model.AuthData;
 import model.UserData;
 import service.request.LoginRequest;
+import service.request.LogoutRequest;
 import service.request.RegisterRequest;
 import service.result.ClearResult;
 import service.result.LoginResult;
+import service.result.LogoutResult;
 import service.result.RegisterResult;
 
 import java.util.UUID;
@@ -32,6 +34,7 @@ public class UserService {
     }
 
     public RegisterResult register(RegisterRequest request) {
+        if (request == null) {return new RegisterResult(null, null, "Invalid request");}
         String username = request.username();
         String password = request.password();
         String email = request.email();
@@ -58,6 +61,7 @@ public class UserService {
     }
 
     public LoginResult login(LoginRequest request) {
+        if (request == null) {return new LoginResult(null, null, "Invalid request");}
         String username = request.username();
         String password = request.password();
 
@@ -81,5 +85,22 @@ public class UserService {
         }
     }
 
+    public LogoutResult logout(LogoutRequest request) {
+        if (request == null) {return new LogoutResult("Invalid request");}
+        String authToken = request.authToken();
+
+        if (authToken == null || authToken.isEmpty()){ //Validate Inputs
+            return new LogoutResult("Missing Authentication Token");
+        }
+        try {
+            AuthData currentSession = authDao.getAuth(authToken);
+            authDao.deleteAuth(currentSession);
+            return new LogoutResult(null); //success
+        } catch (NotFoundException e) {
+            return new LogoutResult("Invalid authentication inputs");
+        } catch (DataAccessException e) {
+            return new LogoutResult("Internal server error");
+        }
+    }
 
 }

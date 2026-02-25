@@ -17,8 +17,7 @@ public class LogoutHandler
 
     @Override
     public LogoutResult handleRequest(LogoutRequest request) {
-        //return userService.login(request);
-        return new LogoutResult("filler");
+        return userService.logout(request);
     }
 
     @Override
