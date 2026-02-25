@@ -17,8 +17,7 @@ public class LoginHandler
 
     @Override
     public LoginResult handleRequest(LoginRequest request) {
-        //return userService.login(request);
-        return new LoginResult("filler", "filler", null);
+        return userService.login(request);
     }
 
     @Override

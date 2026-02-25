@@ -3,11 +3,12 @@ package server;
 import com.google.gson.Gson;
 import dataaccess.MemoryAuthDao;
 import dataaccess.MemoryUserDao;
+import handler.LoginHandler;
+import handler.LogoutHandler;
 import handler.RegisterHandler;
 import io.javalin.*;
 import service.UserService;
 import service.result.ClearResult;
-import service.result.RegisterResult;
 
 public class Server {
 
@@ -19,12 +20,20 @@ public class Server {
         var authDao = new MemoryAuthDao();
         var userService = new UserService(userDao, authDao);
         var registerHandler = new RegisterHandler(gson, userService);
+        var loginHandler = new LoginHandler(gson, userService);
+        var logoutHandler = new LogoutHandler(gson, userService);
 
         // Register your endpoints and exception handlers here.
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
                 .post("/user", ctx -> {
                     String body = ctx.body();
                     String resultJson = registerHandler.handle(body);
+                    ctx.contentType("application/json");
+                    ctx.result(resultJson);
+                })
+                .post("/session", ctx -> {
+                    String body = ctx.body();
+                    String resultJson = loginHandler.handle(body);
                     ctx.contentType("application/json");
                     ctx.result(resultJson);
                 })

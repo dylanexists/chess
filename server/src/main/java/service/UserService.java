@@ -3,8 +3,10 @@ package service;
 import dataaccess.*;
 import model.AuthData;
 import model.UserData;
+import service.request.LoginRequest;
 import service.request.RegisterRequest;
 import service.result.ClearResult;
+import service.result.LoginResult;
 import service.result.RegisterResult;
 
 import java.util.UUID;
@@ -16,6 +18,17 @@ public class UserService {
     public UserService(UserDao userDao, AuthDao authDao){
         this.userDao = userDao;
         this.authDao = authDao;
+    }
+
+    public ClearResult clear() {
+        try {
+            userDao.clearUsers();
+            authDao.clearAuths();
+            return new ClearResult(null);
+        }
+        catch (QueryException qExcept){
+            return new ClearResult(qExcept.toString());
+        }
     }
 
     public RegisterResult register(RegisterRequest request) {
@@ -39,18 +52,34 @@ public class UserService {
                 return new RegisterResult(username, token, null);
             }
             catch (DuplicateException dExcept) { //User or Auth already exists (shouldn't happen, but we handle it)
-                return new RegisterResult(null, null, dExcept.toString());
+                return new RegisterResult(null, null, "Internal server error");
             }
         }
     }
-    public ClearResult clear() {
-        try {
-            userDao.clearUsers();
-            authDao.clearAuths();
-            return new ClearResult(null);
+
+    public LoginResult login(LoginRequest request) {
+        String username = request.username();
+        String password = request.password();
+
+        if (username == null || password == null){ //Validate Inputs
+            return new LoginResult(null, null, "Missing Login Inputs");
         }
-        catch (QueryException qExcept){
-            return new ClearResult(qExcept.toString());
+        try { //Check if username exists
+            UserData user = userDao.getUser(username); //will try to get User
+            if (password.equals(user.password())){ //verify password
+                String token = UUID.randomUUID().toString();
+                AuthData newAuth = new AuthData(token, username);
+                authDao.createAuth(newAuth); //will try to create Auth
+                return new LoginResult(username, token, null);
+            } else {
+                return new LoginResult(null, null, "Incorrect username or password");
+            }
+        } catch (NotFoundException nfExcept){
+            return new LoginResult(null, null, "Incorrect username or password");
+        } catch (DuplicateException dExcept) { //User or Auth already exists (shouldn't happen, but we handle it)
+            return new LoginResult(null, null, "Internal server error");
         }
     }
+
+
 }
