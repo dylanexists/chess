@@ -16,18 +16,21 @@ public class LoginHandler
     }
 
     @Override
-    public LoginResult handleRequest(LoginRequest request) {
+    public LoginResult runRequestSpecificService(LoginRequest request) {
         return userService.login(request);
     }
 
     @Override
     protected LoginResult invalidJsonResponse() {
-        return new LoginResult(null, null, "Invalid JSON");
+        return new LoginResult(null, null, "Error: bad request");
     }
 
     @Override
     protected LoginResult internalError(Exception e) {
-        return new LoginResult(null, null, "Internal Server Error");
+        String errorDesc = (e.getMessage() == null)
+                ? "Internal error (no error message given)"
+                : e.getMessage();
+        return new LoginResult(null, null, "Error: " + errorDesc);
     }
 
 }

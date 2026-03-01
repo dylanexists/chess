@@ -3,6 +3,8 @@ package handler;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+import java.util.Map;
+
 
 public abstract class AbsBaseHandler<Request, Result> implements Handler<Request, Result> {
 
@@ -22,16 +24,20 @@ public abstract class AbsBaseHandler<Request, Result> implements Handler<Request
         return gson.toJson(result);
     }
 
-    public String handle(String json){
+    public Result handle(String json){
         try {
             Request request = deserialize(json);
-            Result result = handleRequest(request);
-            return serialize(result);
+            return runRequestSpecificService(request);
         } catch (JsonSyntaxException e){
-            return serialize(invalidJsonResponse());
+            return invalidJsonResponse();
         } catch (Exception e) {
-            return serialize(internalError(e));
+            return internalError(e);
         }
+    }
+
+    public String headerStringToJson(String name, String header){
+        Map<String, String> jsonMap = Map.of(name, header);
+        return gson.toJson(jsonMap);
     }
 
     protected abstract Result invalidJsonResponse();

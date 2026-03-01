@@ -16,17 +16,20 @@ public class LogoutHandler
     }
 
     @Override
-    public LogoutResult handleRequest(LogoutRequest request) {
+    public LogoutResult runRequestSpecificService(LogoutRequest request) {
         return userService.logout(request);
     }
 
     @Override
     protected LogoutResult invalidJsonResponse() {
-        return new LogoutResult("Invalid JSON");
+        return new LogoutResult("Error: bad request");
     }
 
     @Override
     protected LogoutResult internalError(Exception e) {
-        return new LogoutResult("Internal Server Error");
+        String errorDesc = (e.getMessage() == null)
+                ? "Internal error (no error message given)"
+                : e.getMessage();
+        return new LogoutResult("Error: " + errorDesc);
     }
 }

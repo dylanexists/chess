@@ -2,7 +2,9 @@ package handler;
 
 public interface Handler<Request, Result> {
 
-    String handle(String json);
+    String headerStringToJson(String name, String header);
 
-    Result handleRequest(Request request);
+    Result handle(String json);
+
+    Result runRequestSpecificService(Request request);
 }

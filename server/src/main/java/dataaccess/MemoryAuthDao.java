@@ -25,11 +25,18 @@ public class MemoryAuthDao implements AuthDao{
 
     @Override
     public AuthData getAuth(String authToken) throws NotFoundException {
-        return null;
+        AuthData data = authTokens.get(authToken);
+        if (data == null){
+            throw new NotFoundException("Auth doesn't exist");
+        }
+        return data;
     }
 
     @Override
-    public void deleteAuth(AuthData a) throws DataAccessException {
-
+    public void deleteAuth(AuthData a) throws NotFoundException {
+        if (a == null){
+            throw new NotFoundException("Auth doesn't exist");
+        }
+        authTokens.remove(a.authToken());
     }
 }

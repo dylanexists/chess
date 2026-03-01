@@ -16,18 +16,21 @@ public class RegisterHandler
     }
 
     @Override
-    public RegisterResult handleRequest(RegisterRequest request) {
+    public RegisterResult runRequestSpecificService(RegisterRequest request) {
         return userService.register(request);
     }
 
     @Override
     protected RegisterResult invalidJsonResponse() {
-        return new RegisterResult(null, null, "Invalid JSON");
+        return new RegisterResult(null, null, "Error: bad request");
     }
 
     @Override
     protected RegisterResult internalError(Exception e) {
-        return new RegisterResult(null, null, "Internal Server Error");
+        String errorDesc = (e.getMessage() == null)
+                ? "Internal error (no error message given)"
+                : e.getMessage();
+        return new RegisterResult(null, null, "Error: " + errorDesc);
     }
 
 }
