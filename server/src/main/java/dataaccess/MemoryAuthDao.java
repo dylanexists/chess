@@ -1,10 +1,8 @@
 package dataaccess;
 
 import model.AuthData;
-import model.UserData;
 
 import java.util.HashMap;
-import java.util.UUID;
 
 public class MemoryAuthDao implements AuthDao{
     final private HashMap<String, AuthData> authTokens = new HashMap<>();
@@ -16,7 +14,7 @@ public class MemoryAuthDao implements AuthDao{
 
     @Override
     public AuthData createAuth(AuthData a) throws DuplicateException {
-        if (authTokens.containsKey(a.authToken())){
+        if (existsAuth(a.authToken())){
             throw new DuplicateException("Auth token already exists");
         }
         authTokens.put(a.authToken(), a);
@@ -39,4 +37,10 @@ public class MemoryAuthDao implements AuthDao{
         }
         authTokens.remove(a.authToken());
     }
+
+    @Override
+    public boolean existsAuth(String authToken){
+        return authTokens.containsKey(authToken);
+    }
+
 }

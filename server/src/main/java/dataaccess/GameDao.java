@@ -14,4 +14,6 @@ public interface GameDao {
     List<GameData> listGames() throws NotFoundException;
 
     GameData updateGame(GameData g) throws DataAccessException;
+
+    boolean existsGame(int gameID);
 }

@@ -18,7 +18,6 @@ public class MemoryUserDao implements UserDao{
         if (existsUser(u.username())){
             throw new DuplicateException("Username already exists");
         }
-
         users.put(u.username(), u);
         return u;
     }

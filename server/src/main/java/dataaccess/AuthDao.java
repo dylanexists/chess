@@ -13,4 +13,6 @@ public interface AuthDao {
     AuthData getAuth(String authToken) throws NotFoundException;
 
     void deleteAuth(AuthData a) throws DataAccessException;
+
+    boolean existsAuth(String authToken);
 }
