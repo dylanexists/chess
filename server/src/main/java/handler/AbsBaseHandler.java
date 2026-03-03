@@ -8,27 +8,27 @@ import com.google.gson.JsonSyntaxException;
 import java.util.Map;
 
 
-public abstract class AbsBaseHandler<Request, Result> implements Handler<Request, Result> {
+public abstract class AbsBaseHandler<R, S> implements Handler<R, S> {
 
     protected final Gson gson;
-    private final Class<Request> requestClass;
+    private final Class<R> requestClass;
 
-    protected AbsBaseHandler (Gson gson, Class<Request> requestClass){
+    protected AbsBaseHandler (Gson gson, Class<R> requestClass){
         this.gson = gson;
         this.requestClass = requestClass;
     }
 
-    public Request deserialize(String json) {
+    public R deserialize(String json) {
         return gson.fromJson(json, requestClass);
     }
 
-    public String serialize(Result result) {
+    public String serialize(S result) {
         return gson.toJson(result);
     }
 
-    public Result handle(String json){
+    public S handle(String json){
         try {
-            Request request = deserialize(json);
+            R request = deserialize(json);
             return runRequestSpecificService(request);
         } catch (JsonSyntaxException e){
             return invalidJsonResponse();
@@ -56,7 +56,7 @@ public abstract class AbsBaseHandler<Request, Result> implements Handler<Request
         return gson.toJson(combinedJson);
     }
 
-    protected abstract Result invalidJsonResponse();
+    protected abstract S invalidJsonResponse();
 
-    protected abstract Result internalError(Exception e);
+    protected abstract S internalError(Exception e);
 }

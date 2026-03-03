@@ -1,7 +1,6 @@
 package server;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import dataaccess.MemoryAuthDao;
 import dataaccess.MemoryGameDao;
 import dataaccess.MemoryUserDao;
@@ -9,11 +8,8 @@ import handler.*;
 import io.javalin.*;
 import service.GameService;
 import service.UserService;
-import service.request.ClearRequest;
 import service.result.*;
 
-import java.util.List;
-import java.util.Map;
 
 public class Server {
 
@@ -34,21 +30,12 @@ public class Server {
         var joinGameHandler = new JoinGameHandler(gson, gameService);
         var clearHandler = new ClearHandler(gson, userService, gameService);
 
-        // Register your endpoints and exception handlers here.
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
                 .post("/user", ctx -> {
                     String input = ctx.body();
                     RegisterResult result = registerHandler.handle(input);
                     String resultJson = registerHandler.serialize(result);
-                    if (result.username() != null && result.authToken() != null && result.message() == null) {
-                        ctx.status(200);
-                    } else if (result.message().equals("Error: already taken")) {
-                        ctx.status(403);
-                    } else if (result.message().equals("Error: bad request")) {
-                        ctx.status(400);
-                    } else {
-                        ctx.status(500);
-                    }
+                    ctx.status(identifyErrorNum(result.message()));
                     ctx.contentType("application/json");
                     ctx.result(resultJson);
 
@@ -57,15 +44,7 @@ public class Server {
                     String input = ctx.body();
                     LoginResult result = loginHandler.handle(input);
                     String resultJson = loginHandler.serialize(result);
-                    if (result.username() != null && result.authToken() != null && result.message() == null) {
-                        ctx.status(200);
-                    } else if (result.message().equals("Error: unauthorized")) {
-                        ctx.status(401);
-                    } else if (result.message().equals("Error: bad request")) {
-                        ctx.status(400);
-                    } else {
-                        ctx.status(500);
-                    }
+                    ctx.status(identifyErrorNum(result.message()));
                     ctx.contentType("application/json");
                     ctx.result(resultJson);
                 })
@@ -74,15 +53,7 @@ public class Server {
                     String input = logoutHandler.headerStringToJson("authToken", header);
                     LogoutResult result = logoutHandler.handle(input);
                     String resultJson = logoutHandler.serialize(result);
-                    if (result.message() == null) {
-                        ctx.status(200);
-                    } else if (result.message().equals("Error: unauthorized")) {
-                        ctx.status(401);
-                    } else if (result.message().equals("Error: bad request")) {
-                        ctx.status(400);
-                    } else {
-                        ctx.status(500);
-                    }
+                    ctx.status(identifyErrorNum(result.message()));
                     ctx.contentType("application/json");
                     ctx.result(resultJson);
                 })
@@ -93,15 +64,7 @@ public class Server {
                     String combinedInput = createGameHandler.combineHeaderAndBodyJson(headerInput, bodyInput);
                     CreateGameResult result = createGameHandler.handle(combinedInput);
                     String resultJson = createGameHandler.serialize(result);
-                    if (result.message() == null) {
-                        ctx.status(200);
-                    } else if (result.message().equals("Error: unauthorized")) {
-                        ctx.status(401);
-                    } else if (result.message().equals("Error: bad request")) {
-                        ctx.status(400);
-                    } else {
-                        ctx.status(500);
-                    }
+                    ctx.status(identifyErrorNum(result.message()));
                     ctx.contentType("application/json");
                     ctx.result(resultJson);
                 })
@@ -110,15 +73,7 @@ public class Server {
                     String headerInput = listGamesHandler.headerStringToJson("authToken", header);
                     ListGamesResult result = listGamesHandler.handle(headerInput);
                     String resultJson = listGamesHandler.serialize(result);
-                    if (result.message() == null) {
-                        ctx.status(200);
-                    } else if (result.message().equals("Error: unauthorized")) {
-                        ctx.status(401);
-                    } else if (result.message().equals("Error: bad request")) {
-                        ctx.status(400);
-                    } else {
-                        ctx.status(500);
-                    }
+                    ctx.status(identifyErrorNum(result.message()));
                     ctx.contentType("application/json");
                     ctx.result(resultJson);
                 })
@@ -129,24 +84,11 @@ public class Server {
                     String combinedInput = joinGameHandler.combineHeaderAndBodyJson(headerInput, bodyInput);
                     JoinGameResult result = joinGameHandler.handle(combinedInput);
                     String resultJson = joinGameHandler.serialize(result);
-                    if (result.message() == null) {
-                        ctx.status(200);
-                    } else if (result.message().equals("Error: already taken")) {
-                        ctx.status(403);
-                    } else if (result.message().equals("Error: unauthorized")) {
-                        ctx.status(401);
-                    } else if (result.message().equals("Error: bad request")) {
-                        ctx.status(400);
-                    } else {
-                        ctx.status(500);
-                    }
+                    ctx.status(identifyErrorNum(result.message()));
                     ctx.contentType("application/json");
                     ctx.result(resultJson);
                 })
                 .delete("/db", ctx -> {
-                    //ClearResult result = userService.clear();
-                    //gameService.clear();
-                    //String resultJson = new Gson().toJson(result);
                     ClearResult result = clearHandler.handle("");
                     String resultJson = clearHandler.serialize(result);
                     ctx.contentType("application/json");
@@ -156,6 +98,19 @@ public class Server {
     }
 
 
+    private int identifyErrorNum(String message){
+        if (message == null) {
+            return 200;
+        } else if (message.equals("Error: already taken")) {
+           return 403;
+        } else if (message.equals("Error: unauthorized")) {
+            return 401;
+        } else if (message.equals("Error: bad request")) {
+            return 400;
+        } else {
+            return 500;
+        }
+    }
 
     public int run(int desiredPort) {
         javalin.start(desiredPort);

@@ -69,7 +69,7 @@ public class UserService {
             return new LoginResult(null, null, "Error: bad request");
         }
         try { //Check if username exists
-            UserData user = userDao.getUser(username); //will try to get User
+            UserData user = userDao.getUser(username);
             if (password.equals(user.password())){ //verify password
                 String token = UUID.randomUUID().toString();
                 AuthData newAuth = new AuthData(token, username);
