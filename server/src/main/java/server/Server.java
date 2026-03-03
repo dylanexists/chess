@@ -5,15 +5,13 @@ import com.google.gson.JsonObject;
 import dataaccess.MemoryAuthDao;
 import dataaccess.MemoryGameDao;
 import dataaccess.MemoryUserDao;
-import handler.CreateGameHandler;
-import handler.LoginHandler;
-import handler.LogoutHandler;
-import handler.RegisterHandler;
+import handler.*;
 import io.javalin.*;
 import service.GameService;
 import service.UserService;
 import service.result.*;
 
+import java.util.List;
 import java.util.Map;
 
 public class Server {
@@ -31,6 +29,8 @@ public class Server {
         var loginHandler = new LoginHandler(gson, userService);
         var logoutHandler = new LogoutHandler(gson, userService);
         var createGameHandler = new CreateGameHandler(gson, gameService);
+        var listGamesHandler = new ListGamesHandler(gson, gameService);
+        var joinGameHandler = new JoinGameHandler(gson, gameService);
 
         // Register your endpoints and exception handlers here.
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
@@ -84,12 +84,6 @@ public class Server {
                     ctx.contentType("application/json");
                     ctx.result(resultJson);
                 })
-                .delete("/db", ctx -> {
-                    ClearResult result = userService.clear();
-                    String resultJson = new Gson().toJson(result);
-                    ctx.contentType("application/json");
-                    ctx.result(resultJson);
-                })
                 .post("/game", ctx -> { //pull inputs from body too
                     String header = ctx.header("Authorization");
                     String headerInput = createGameHandler.headerStringToJson("authToken", header);
@@ -106,6 +100,51 @@ public class Server {
                     } else {
                         ctx.status(500);
                     }
+                    ctx.contentType("application/json");
+                    ctx.result(resultJson);
+                })
+                .get("/game", ctx -> {
+                    String header = ctx.header("Authorization");
+                    String headerInput = listGamesHandler.headerStringToJson("authToken", header);
+                    ListGamesResult result = listGamesHandler.handle(headerInput);
+                    String resultJson = listGamesHandler.serialize(result);
+                    if (result.message() == null) {
+                        ctx.status(200);
+                    } else if (result.message().equals("Error: unauthorized")) {
+                        ctx.status(401);
+                    } else if (result.message().equals("Error: bad request")) {
+                        ctx.status(400);
+                    } else {
+                        ctx.status(500);
+                    }
+                    ctx.contentType("application/json");
+                    ctx.result(resultJson);
+                })
+                .put("/game", ctx -> {
+                    String header = ctx.header("Authorization");
+                    String headerInput = joinGameHandler.headerStringToJson("authToken", header);
+                    String bodyInput = ctx.body();
+                    String combinedInput = joinGameHandler.combineHeaderAndBodyJson(headerInput, bodyInput);
+                    JoinGameResult result = joinGameHandler.handle(combinedInput);
+                    String resultJson = joinGameHandler.serialize(result);
+                    if (result.message() == null) {
+                        ctx.status(200);
+                    } else if (result.message().equals("Error: already taken")) {
+                        ctx.status(403);
+                    } else if (result.message().equals("Error: unauthorized")) {
+                        ctx.status(401);
+                    } else if (result.message().equals("Error: bad request")) {
+                        ctx.status(400);
+                    } else {
+                        ctx.status(500);
+                    }
+                    ctx.contentType("application/json");
+                    ctx.result(resultJson);
+                })
+                .delete("/db", ctx -> {
+                    ClearResult result = userService.clear();
+                    gameService.clear();
+                    String resultJson = new Gson().toJson(result);
                     ctx.contentType("application/json");
                     ctx.result(resultJson);
                 })

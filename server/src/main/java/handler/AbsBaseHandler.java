@@ -10,7 +10,7 @@ import java.util.Map;
 
 public abstract class AbsBaseHandler<Request, Result> implements Handler<Request, Result> {
 
-    private final Gson gson;
+    protected final Gson gson;
     private final Class<Request> requestClass;
 
     protected AbsBaseHandler (Gson gson, Class<Request> requestClass){

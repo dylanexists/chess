@@ -11,7 +11,7 @@ public interface GameDao {
 
     GameData getGame(int gameID) throws NotFoundException;
 
-    List<GameData> listGames() throws NotFoundException;
+    List<GameData> listGames() throws QueryException;
 
     GameData updateGame(GameData g) throws DataAccessException;
 

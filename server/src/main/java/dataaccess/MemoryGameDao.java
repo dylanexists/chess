@@ -32,10 +32,7 @@ public class MemoryGameDao implements GameDao{
     }
 
     @Override
-    public List<GameData> listGames() throws NotFoundException {
-        if (games.isEmpty()){
-            throw new NotFoundException("No games found");
-        }
+    public List<GameData> listGames() throws QueryException {
         return List.copyOf(games.values());
     }
 
