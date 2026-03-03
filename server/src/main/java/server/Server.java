@@ -9,6 +9,7 @@ import handler.*;
 import io.javalin.*;
 import service.GameService;
 import service.UserService;
+import service.request.ClearRequest;
 import service.result.*;
 
 import java.util.List;
@@ -31,6 +32,7 @@ public class Server {
         var createGameHandler = new CreateGameHandler(gson, gameService);
         var listGamesHandler = new ListGamesHandler(gson, gameService);
         var joinGameHandler = new JoinGameHandler(gson, gameService);
+        var clearHandler = new ClearHandler(gson, userService, gameService);
 
         // Register your endpoints and exception handlers here.
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
@@ -142,9 +144,11 @@ public class Server {
                     ctx.result(resultJson);
                 })
                 .delete("/db", ctx -> {
-                    ClearResult result = userService.clear();
-                    gameService.clear();
-                    String resultJson = new Gson().toJson(result);
+                    //ClearResult result = userService.clear();
+                    //gameService.clear();
+                    //String resultJson = new Gson().toJson(result);
+                    ClearResult result = clearHandler.handle("");
+                    String resultJson = clearHandler.serialize(result);
                     ctx.contentType("application/json");
                     ctx.result(resultJson);
                 })
