@@ -54,7 +54,7 @@ public class GameService {
         if (gameName == null) {return CreateGameResult.badRequest();}
         if (authToken == null || authToken.isEmpty()){return CreateGameResult.unauthorized();}
         try { //success case
-            AuthData currentSession = authDao.getAuth(authToken); //checks if authToken exists
+            authDao.getAuth(authToken); //checks if authToken exists
             int uniqueGameID = generateUniqueID();
             GameData newGame = new GameData(uniqueGameID, null, null, gameName, new ChessGame());
             gameDao.createGame(newGame); //will try to create Game
@@ -72,7 +72,7 @@ public class GameService {
 
         if (authToken == null || authToken.isEmpty()){return ListGamesResult.unauthorized();}
         try {
-            AuthData currentSession = authDao.getAuth(authToken); //checks if authToken exists
+            authDao.getAuth(authToken); //checks if authToken exists
             List<GameData> gamesList = new ArrayList<>();
             gamesList = gameDao.listGames();
             return new ListGamesResult(gamesList, null);
