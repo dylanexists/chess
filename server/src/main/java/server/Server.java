@@ -1,17 +1,18 @@
 package server;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import dataaccess.MemoryAuthDao;
+import dataaccess.MemoryGameDao;
 import dataaccess.MemoryUserDao;
+import handler.CreateGameHandler;
 import handler.LoginHandler;
 import handler.LogoutHandler;
 import handler.RegisterHandler;
 import io.javalin.*;
+import service.GameService;
 import service.UserService;
-import service.result.ClearResult;
-import service.result.LoginResult;
-import service.result.LogoutResult;
-import service.result.RegisterResult;
+import service.result.*;
 
 import java.util.Map;
 
@@ -23,10 +24,13 @@ public class Server {
         Gson gson = new Gson();
         var userDao = new MemoryUserDao();
         var authDao = new MemoryAuthDao();
+        var gameDao = new MemoryGameDao();
         var userService = new UserService(userDao, authDao);
+        var gameService = new GameService(gameDao, authDao);
         var registerHandler = new RegisterHandler(gson, userService);
         var loginHandler = new LoginHandler(gson, userService);
         var logoutHandler = new LogoutHandler(gson, userService);
+        var createGameHandler = new CreateGameHandler(gson, gameService);
 
         // Register your endpoints and exception handlers here.
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
@@ -86,8 +90,29 @@ public class Server {
                     ctx.contentType("application/json");
                     ctx.result(resultJson);
                 })
+                .post("/game", ctx -> { //pull inputs from body too
+                    String header = ctx.header("Authorization");
+                    String headerInput = createGameHandler.headerStringToJson("authToken", header);
+                    String bodyInput = ctx.body();
+                    String combinedInput = createGameHandler.combineHeaderAndBodyJson(headerInput, bodyInput);
+                    CreateGameResult result = createGameHandler.handle(combinedInput);
+                    String resultJson = createGameHandler.serialize(result);
+                    if (result.message() == null) {
+                        ctx.status(200);
+                    } else if (result.message().equals("Error: unauthorized")) {
+                        ctx.status(401);
+                    } else if (result.message().equals("Error: bad request")) {
+                        ctx.status(400);
+                    } else {
+                        ctx.status(500);
+                    }
+                    ctx.contentType("application/json");
+                    ctx.result(resultJson);
+                })
                 ;
     }
+
+
 
     public int run(int desiredPort) {
         javalin.start(desiredPort);

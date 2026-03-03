@@ -1,6 +1,8 @@
 package handler;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
 import java.util.Map;
@@ -38,6 +40,20 @@ public abstract class AbsBaseHandler<Request, Result> implements Handler<Request
     public String headerStringToJson(String name, String header){
         Map<String, String> jsonMap = Map.of(name, header);
         return gson.toJson(jsonMap);
+    }
+
+    public String combineHeaderAndBodyJson(String header, String body){
+        JsonObject headerJson = JsonParser.parseString(header).getAsJsonObject();
+        JsonObject bodyJson = JsonParser.parseString(body).getAsJsonObject();
+
+        JsonObject combinedJson = new JsonObject();
+        for (var entry: headerJson.entrySet()){
+            combinedJson.add(entry.getKey(), entry.getValue());
+        }
+        for (var entry: bodyJson.entrySet()){
+            combinedJson.add(entry.getKey(), entry.getValue());
+        }
+        return gson.toJson(combinedJson);
     }
 
     protected abstract Result invalidJsonResponse();
