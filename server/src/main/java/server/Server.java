@@ -1,9 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.MemoryAuthDao;
-import dataaccess.MemoryGameDao;
-import dataaccess.MemoryUserDao;
+import dataaccess.*;
 import handler.*;
 import io.javalin.*;
 import service.GameService;
@@ -16,9 +14,14 @@ public class Server {
     private final Javalin javalin;
 
     public Server() {
+        try{
+            DatabaseManager.createDatabase();
+        } catch (DataAccessException e) {
+            System.err.println("Database initialization failed");
+        }
         Gson gson = new Gson();
         var userDao = new MemoryUserDao();
-        var authDao = new MemoryAuthDao();
+        var authDao = new SQLAuthDao();
         var gameDao = new MemoryGameDao();
         var userService = new UserService(userDao, authDao);
         var gameService = new GameService(gameDao, authDao);
