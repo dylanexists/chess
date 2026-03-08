@@ -1,9 +1,11 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.*;
 import handler.*;
 import io.javalin.*;
+import model.GameData;
 import service.GameService;
 import service.UserService;
 import service.result.*;
@@ -22,7 +24,7 @@ public class Server {
         Gson gson = new Gson();
         var userDao = new SQLUserDao();
         var authDao = new SQLAuthDao();
-        var gameDao = new SQLGameDao();
+        var gameDao = new SQLGameDao(gson);
         var userService = new UserService(userDao, authDao);
         var gameService = new GameService(gameDao, authDao);
         var registerHandler = new RegisterHandler(gson, userService);

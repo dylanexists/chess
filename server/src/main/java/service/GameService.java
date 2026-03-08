@@ -61,7 +61,7 @@ public class GameService {
             return new CreateGameResult(uniqueGameID, null);
         } catch (NotFoundException e) {
             return CreateGameResult.unauthorized();
-        } catch (DuplicateException dExcept){
+        } catch (DataAccessException dExcept){
             return CreateGameResult.internalError();
         }
     }

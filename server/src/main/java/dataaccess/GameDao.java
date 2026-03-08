@@ -7,7 +7,7 @@ public interface GameDao {
 
     void clearGames() throws QueryException;
 
-    GameData createGame(GameData g) throws DuplicateException;
+    GameData createGame(GameData g) throws DataAccessException;
 
     GameData getGame(int gameID) throws NotFoundException;
 
