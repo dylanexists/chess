@@ -4,11 +4,11 @@ import model.UserData;
 
 import java.sql.SQLException;
 
-public class SQLUserDao implements UserDao{
+public class SQLUserDao extends SQLBaseDao implements UserDao{
 
     public SQLUserDao(){
         try {
-            configureDatabase();
+            configureDatabase(createStatement);
         } catch (DataAccessException e) {
             System.err.println("AuthDao table initialization failed");
         }
@@ -36,13 +36,4 @@ public class SQLUserDao implements UserDao{
                     PRIMARY KEY (username)
                     )
                     """;
-
-    private void configureDatabase() throws DataAccessException {
-        var conn = DatabaseManager.getConnection(); //throws DataAccessException
-        try (var preparedStatement = conn.prepareStatement(createStatement);){
-            preparedStatement.executeUpdate();
-        } catch (SQLException e){
-            throw new DataAccessException("UserDao's create statement failed");
-        }
-    }
 }

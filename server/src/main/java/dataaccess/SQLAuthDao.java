@@ -2,13 +2,11 @@ package dataaccess;
 
 import model.AuthData;
 
-import java.sql.SQLException;
-
-public class SQLAuthDao implements AuthDao{
+public class SQLAuthDao extends SQLBaseDao implements AuthDao{
 
     public SQLAuthDao(){
         try {
-            configureDatabase();
+            configureDatabase(createStatement);
         } catch (DataAccessException e) {
             System.err.println("AuthDao table initialization failed");
         }
@@ -38,13 +36,4 @@ public class SQLAuthDao implements AuthDao{
                     PRIMARY KEY (authToken)
                     )
                     """;
-
-    private void configureDatabase() throws DataAccessException {
-            var conn = DatabaseManager.getConnection(); //throws DataAccessException
-            try (var preparedStatement = conn.prepareStatement(createStatement);){
-                preparedStatement.executeUpdate();
-            } catch (SQLException e){
-                throw new DataAccessException("AuthDao's create statement failed");
-            }
-    }
 }
