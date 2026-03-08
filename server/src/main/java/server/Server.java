@@ -20,9 +20,9 @@ public class Server {
             System.err.println("Database initialization failed");
         }
         Gson gson = new Gson();
-        var userDao = new MemoryUserDao();
+        var userDao = new SQLUserDao();
         var authDao = new SQLAuthDao();
-        var gameDao = new MemoryGameDao();
+        var gameDao = new SQLGameDao();
         var userService = new UserService(userDao, authDao);
         var gameService = new GameService(gameDao, authDao);
         var registerHandler = new RegisterHandler(gson, userService);
