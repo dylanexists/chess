@@ -69,7 +69,21 @@ public class SQLAuthDao extends SQLBaseDao implements AuthDao{
     }
 
     @Override
-    public void deleteAuth(AuthData a) throws DataAccessException{}
+    public void deleteAuth(AuthData a) throws DataAccessException {
+        if (!existsAuth(a.authToken())) {throw new NotFoundException("Not found");}
+        String deleteAuthStatement = """
+                DELETE FROM auths
+                WHERE authtoken = ?;
+                """;
+        String authToken = a.authToken();
+        try {
+            execUpdateStatement(
+                    deleteAuthStatement,
+                    prepState -> prepState.setString(1, authToken));
+        } catch (QueryException e) {
+            throw new QueryException("AuthDao's delete statement failed", e);
+        }
+    }
 
     @Override
     public boolean existsAuth(String authToken) throws QueryException{

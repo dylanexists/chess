@@ -87,4 +87,31 @@ public class SQLAuthDaoTests {
         });
     }
 
+    @Test
+    @DisplayName("AuthDao deleteAuth() Positive Test")
+    public void deleteAuthSuccess() {
+        assertDoesNotThrow(() -> {
+            AuthData auth = new AuthData("123", "willDeleteUser");
+            AuthData auth2 = new AuthData("456", "existingUser");
+            authDao.createAuth(auth);
+            authDao.createAuth(auth2);
+            authDao.deleteAuth(auth);
+            authDao.getAuth("456");
+        });
+        assertThrows(NotFoundException.class, () -> {
+            authDao.getAuth("123");
+        });
+    }
+
+    @Test
+    @DisplayName("AuthDao deleteAuth() Negative Test")
+    public void deleteAuthFailure() {
+        assertThrows(NotFoundException.class, () -> {
+            AuthData auth = new AuthData("1234", "user");
+            AuthData auth2 = new AuthData("5678", "neverMade");
+            authDao.createAuth(auth);
+            authDao.deleteAuth(auth2);
+        });
+    }
+
 }
