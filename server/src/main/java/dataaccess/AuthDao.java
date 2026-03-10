@@ -8,11 +8,11 @@ public interface AuthDao {
 
     void clearAuths() throws QueryException;
 
-    AuthData createAuth(AuthData a) throws DataAccessException;
+    AuthData createAuth(AuthData a) throws DuplicateException, QueryException;
 
     AuthData getAuth(String authToken) throws NotFoundException, QueryException;
 
     void deleteAuth(AuthData a) throws DataAccessException;
 
-    boolean existsAuth(String authToken);
+    boolean existsAuth(String authToken) throws QueryException;
 }

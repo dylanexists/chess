@@ -19,28 +19,28 @@ public class SQLBaseDao {
     } //apply input T and return R
 
     //simple execute function
-    protected void execUpdateStatement(String statement) throws DataAccessException{
+    protected void execUpdateStatement(String statement) throws QueryException{
         try (var conn = DatabaseManager.getConnection();
              var preparedStatement = conn.prepareStatement(statement)) {
             preparedStatement.executeUpdate();
         } catch (SQLException e){
-            throw new DataAccessException("Failed SQL update statement", e);
+            throw new QueryException("Failed SQL update statement", e);
         }
     }
 
     //overload for statements with dynamic parameters
-    protected void execUpdateStatement(String statement, SQLConsumer<PreparedStatement> paramSetter) throws DataAccessException{
+    protected void execUpdateStatement(String statement, SQLConsumer<PreparedStatement> paramSetter) throws QueryException{
         try (var conn = DatabaseManager.getConnection();
              var preparedStatement = conn.prepareStatement(statement)) {
             paramSetter.accept(preparedStatement);
             preparedStatement.executeUpdate();
         } catch (SQLException e){
-            throw new DataAccessException("Failed SQL update statement", e);
+            throw new QueryException("Failed SQL update statement", e);
         }
     }
 
     protected <R> List<R> execQueryStatement(String statement, SQLConsumer<PreparedStatement> paramSetter,
-                                 SQLFunction<ResultSet, R> mapResultFunction) throws DataAccessException {
+                                 SQLFunction<ResultSet, R> mapResultFunction) throws QueryException {
         try (var conn = DatabaseManager.getConnection();
              var preparedStatement = conn.prepareStatement(statement)) {
             paramSetter.accept(preparedStatement);
@@ -52,7 +52,7 @@ public class SQLBaseDao {
                 return result;
             }
         } catch (SQLException e){
-            throw new DataAccessException("Failed SQL query statement", e);
+            throw new QueryException("Failed SQL query statement", e);
         }
     }
 

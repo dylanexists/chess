@@ -24,7 +24,7 @@ public class SQLGameDao extends SQLBaseDao implements GameDao{
         try {
             execUpdateStatement(clearStatement);
         } catch (DataAccessException e){
-            throw new QueryException("GameDao's clear statement failed");
+            throw new QueryException("GameDao's clear statement failed", e);
         }
     }
 
@@ -48,7 +48,7 @@ public class SQLGameDao extends SQLBaseDao implements GameDao{
             });
             return g;
         } catch (DataAccessException e){
-            throw new QueryException("GameDao's clear statement failed");
+            throw new QueryException("GameDao's clear statement failed", e);
         }
     }
 

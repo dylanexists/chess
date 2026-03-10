@@ -23,12 +23,13 @@ public class SQLAuthDao extends SQLBaseDao implements AuthDao{
         try {
             execUpdateStatement(clearStatement);
         } catch (DataAccessException e){
-            throw new QueryException("AuthDao's clear statement failed");
+            throw new QueryException("AuthDao's clear statement failed", e);
         }
     }
 
     @Override
-    public AuthData createAuth(AuthData a) throws DataAccessException{
+    public AuthData createAuth(AuthData a) throws QueryException, DuplicateException{
+        if (existsAuth(a.authToken())) {throw new DuplicateException("Duplicate");}
         String insertAuthStatement = """
                 INSERT INTO auths (authToken, username)
                 VALUES (?,?)
@@ -42,8 +43,8 @@ public class SQLAuthDao extends SQLBaseDao implements AuthDao{
                 prepState.setString(2, username);
             });
             return a;
-        } catch (DataAccessException e){
-            throw new QueryException("AuthDao's clear statement failed");
+        } catch (QueryException e){
+            throw new QueryException("AuthDao's create statement failed", e);
         }
     }
 
@@ -62,8 +63,8 @@ public class SQLAuthDao extends SQLBaseDao implements AuthDao{
                 throw new NotFoundException("Not found");
             }
             return authList.getFirst();
-        } catch (DataAccessException e){
-            throw new NotFoundException("AuthDao's clear statement failed");
+        } catch (QueryException e){
+            throw new QueryException("AuthDao's get statement failed", e);
         }
     }
 
@@ -71,7 +72,14 @@ public class SQLAuthDao extends SQLBaseDao implements AuthDao{
     public void deleteAuth(AuthData a) throws DataAccessException{}
 
     @Override
-    public boolean existsAuth(String authToken){return true;}
+    public boolean existsAuth(String authToken) throws QueryException{
+        try {
+            getAuth(authToken);
+            return true;
+        } catch (NotFoundException e) {
+            return false;
+        }
+    }
 
     private final String createStatement =
             """
