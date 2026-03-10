@@ -8,9 +8,9 @@ public interface AuthDao {
 
     void clearAuths() throws QueryException;
 
-    AuthData createAuth(AuthData a) throws DuplicateException;
+    AuthData createAuth(AuthData a) throws DataAccessException;
 
-    AuthData getAuth(String authToken) throws NotFoundException;
+    AuthData getAuth(String authToken) throws NotFoundException, QueryException;
 
     void deleteAuth(AuthData a) throws DataAccessException;
 

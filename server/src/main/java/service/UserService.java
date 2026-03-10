@@ -54,7 +54,7 @@ public class UserService {
                 authDao.createAuth(newAuth); //will try to create Auth
                 return new RegisterResult(username, token, null);
             }
-            catch (DuplicateException dExcept) { //User or Auth already exists (shouldn't happen, but we handle it)
+            catch (DataAccessException dExcept) { //User or Auth already exists (shouldn't happen, but we handle it)
                 return new RegisterResult(null, null, "Internal server error");
             }
         }
@@ -80,7 +80,7 @@ public class UserService {
             }
         } catch (NotFoundException nfExcept){
             return new LoginResult(null, null, "Error: unauthorized");
-        } catch (DuplicateException dExcept) { //User or Auth already exists (shouldn't happen, but we handle it)
+        } catch (DataAccessException dExcept) { //User or Auth already exists (shouldn't happen, but we handle it)
             return new LoginResult(null, null, "Internal server error");
         }
     }

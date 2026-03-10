@@ -22,7 +22,7 @@ public class SQLGameDao extends SQLBaseDao implements GameDao{
     public void clearGames() throws QueryException {
         String clearStatement = "TRUNCATE TABLE games;";
         try {
-            executeStatement(clearStatement);
+            execUpdateStatement(clearStatement);
         } catch (DataAccessException e){
             throw new QueryException("GameDao's clear statement failed");
         }
@@ -39,7 +39,7 @@ public class SQLGameDao extends SQLBaseDao implements GameDao{
         String gameName = g.gameName();
         String game = gson.toJson(g.game(), g.game().getClass());
         try {
-            executeStatement(insertGameStatement, prepState -> {
+            execUpdateStatement(insertGameStatement, prepState -> {
                 prepState.setInt(1, gameID);
                 prepState.setString(2, whiteUser);
                 prepState.setString(3, blackUser);

@@ -1,11 +1,10 @@
 package server;
 
-import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.*;
 import handler.*;
 import io.javalin.*;
-import model.GameData;
+import model.AuthData;
 import service.GameService;
 import service.UserService;
 import service.result.*;
