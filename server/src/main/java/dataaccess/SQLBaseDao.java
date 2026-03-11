@@ -56,7 +56,7 @@ public class SQLBaseDao {
         }
     }
 
-    protected void configureDatabase(String createStatement) throws DataAccessException {
+    protected void configureDatabase(String createStatement) throws QueryException {
         execUpdateStatement(createStatement);
     }
 }

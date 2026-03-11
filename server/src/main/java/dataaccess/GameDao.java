@@ -9,11 +9,11 @@ public interface GameDao {
 
     GameData createGame(GameData g) throws DataAccessException;
 
-    GameData getGame(int gameID) throws NotFoundException;
+    GameData getGame(int gameID) throws NotFoundException, QueryException;
 
     List<GameData> listGames() throws QueryException;
 
     GameData updateGame(GameData g) throws DataAccessException;
 
-    boolean existsGame(int gameID);
+    boolean existsGame(int gameID) throws QueryException;
 }

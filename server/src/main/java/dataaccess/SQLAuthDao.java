@@ -11,7 +11,7 @@ public class SQLAuthDao extends SQLBaseDao implements AuthDao{
     public SQLAuthDao(){
         try {
             configureDatabase(createStatement);
-        } catch (DataAccessException e) {
+        } catch (QueryException e) {
             System.err.println("AuthDao table initialization failed");
         }
     }
@@ -22,7 +22,7 @@ public class SQLAuthDao extends SQLBaseDao implements AuthDao{
         String clearStatement = "TRUNCATE TABLE auths;";
         try {
             execUpdateStatement(clearStatement);
-        } catch (DataAccessException e){
+        } catch (QueryException e){
             throw new QueryException("AuthDao's clear statement failed", e);
         }
     }
