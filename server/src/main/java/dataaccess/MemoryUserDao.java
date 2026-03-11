@@ -32,6 +32,12 @@ public class MemoryUserDao implements UserDao{
     }
 
     @Override
+    public boolean verifyUser(String username, String password) throws NotFoundException{
+        UserData user = getUser(username);
+        return password.equals(user.password());
+    }
+
+    @Override
     public boolean existsUser(String username){
         return users.containsKey(username);
     }

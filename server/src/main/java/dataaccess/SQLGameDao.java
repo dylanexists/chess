@@ -121,8 +121,8 @@ public class SQLGameDao extends SQLBaseDao implements GameDao{
             """
                     CREATE TABLE IF NOT EXISTS games (
                     gameID INT,
-                    whiteUser varchar(256) NOT NULL,
-                    blackUser varchar(256) NOT NULL,
+                    whiteUser varchar(256),
+                    blackUser varchar(256),
                     gameName varchar(256) NOT NULL,
                     game TEXT,
                     PRIMARY KEY (gameID)

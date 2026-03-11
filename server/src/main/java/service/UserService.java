@@ -42,22 +42,21 @@ public class UserService {
         if (username == null || password == null || email == null){ //Validate Inputs
             return new RegisterResult(null, null, "Error: bad request");
         }
-        if (userDao.existsUser(username)) { //Check if username is already taken
-            return new RegisterResult(null, null, "Error: already taken");
-        }
-        else { //User not found, safe to create new User with given username
-            try { //success case
-                UserData newUser = new UserData(username, password, email);
-                userDao.createUser(newUser); //will try to create User
-                String token = UUID.randomUUID().toString();
-                AuthData newAuth = new AuthData(token, username);
-                authDao.createAuth(newAuth); //will try to create Auth
-                return new RegisterResult(username, token, null);
+        try { //success case
+            if (userDao.existsUser(username)) { //Check if username is already taken
+                return new RegisterResult(null, null, "Error: already taken");
             }
-            catch (DataAccessException dExcept) { //User or Auth already exists (shouldn't happen, but we handle it)
-                return new RegisterResult(null, null, "Internal server error");
-            }
+            UserData newUser = new UserData(username, password, email);
+            userDao.createUser(newUser); //will try to create User
+            String token = UUID.randomUUID().toString();
+            AuthData newAuth = new AuthData(token, username);
+            authDao.createAuth(newAuth); //will try to create Auth
+            return new RegisterResult(username, token, null);
         }
+        catch (DataAccessException dExcept) { //User or Auth already exists (shouldn't happen, but we handle it)
+            return new RegisterResult(null, null, "Internal server error");
+        }
+
     }
 
     public LoginResult login(LoginRequest request) {
@@ -70,7 +69,7 @@ public class UserService {
         }
         try { //Check if username exists
             UserData user = userDao.getUser(username);
-            if (password.equals(user.password())){ //verify password
+            if (userDao.verifyUser(username, password)){ //verify password
                 String token = UUID.randomUUID().toString();
                 AuthData newAuth = new AuthData(token, username);
                 authDao.createAuth(newAuth); //will try to create Auth
