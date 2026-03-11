@@ -29,7 +29,8 @@ public class SQLGameDao extends SQLBaseDao implements GameDao{
         }
     }
 
-    public GameData createGame(GameData g) throws QueryException{
+    public GameData createGame(GameData g) throws DuplicateException, QueryException{
+        if (existsGame(g.gameID())) {throw new DuplicateException("Already exists");}
         String insertGameStatement = """
                 INSERT INTO games (gameID, whiteUser, blackUser, gameName, game)
                 VALUES (?,?,?,?,?)
@@ -85,6 +86,7 @@ public class SQLGameDao extends SQLBaseDao implements GameDao{
     }
 
     public GameData updateGame(GameData g) throws DataAccessException{
+        if (!existsGame(g.gameID())) {throw new NotFoundException("Not found");}
         String updateGameStatement = """
                 UPDATE games
                 SET whiteUser = ?, blackUser = ?, gameName = ?, game = ?
