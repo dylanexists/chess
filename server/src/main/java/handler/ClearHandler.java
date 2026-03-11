@@ -1,6 +1,7 @@
 package handler;
 
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
 import service.GameService;
 import service.UserService;
 import service.request.ClearRequest;
@@ -22,7 +23,8 @@ public class ClearHandler
     public ClearResult runRequestSpecificService(ClearRequest request) {
         ClearResult userResult = userService.clear();
         ClearResult gameResult = gameService.clear();
-        return userResult.message() == null && gameResult.message() == null ? new ClearResult(null) : invalidJsonResponse();
+        return userResult.message() == null && gameResult.message() == null
+                ? new ClearResult(null) : internalError(new Exception());
     }
 
     @Override

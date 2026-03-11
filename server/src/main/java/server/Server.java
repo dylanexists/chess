@@ -95,6 +95,7 @@ public class Server {
                 .delete("/db", ctx -> {
                     ClearResult result = clearHandler.handle("");
                     String resultJson = clearHandler.serialize(result);
+                    ctx.status(identifyErrorNum(result.message()));
                     ctx.contentType("application/json");
                     ctx.result(resultJson);
                 })

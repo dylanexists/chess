@@ -29,7 +29,7 @@ public class UserService {
             return new ClearResult(null);
         }
         catch (QueryException qExcept){
-            return new ClearResult(qExcept.toString());
+            return new ClearResult("Internal server error");
         }
     }
 
