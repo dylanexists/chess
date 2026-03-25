@@ -1,11 +1,10 @@
 package handler;
 
 import com.google.gson.Gson;
-import dataaccess.DataAccessException;
 import service.GameService;
 import service.UserService;
-import service.request.ClearRequest;
-import service.result.ClearResult;
+import request.ClearRequest;
+import result.ClearResult;
 
 public class ClearHandler
         extends AbsBaseHandler<ClearRequest, ClearResult>{

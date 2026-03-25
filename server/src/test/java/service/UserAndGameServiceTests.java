@@ -8,8 +8,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import service.request.*;
-import service.result.*;
+import request.*;
+import result.*;
 
 import java.util.stream.Stream;
 

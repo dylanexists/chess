@@ -2,8 +2,8 @@ package handler;
 
 import com.google.gson.Gson;
 import service.UserService;
-import service.request.LoginRequest;
-import service.result.LoginResult;
+import request.LoginRequest;
+import result.LoginResult;
 
 public class LoginHandler
         extends AbsBaseHandler<LoginRequest, LoginResult> {

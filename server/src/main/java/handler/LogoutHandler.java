@@ -2,8 +2,8 @@ package handler;
 
 import com.google.gson.Gson;
 import service.UserService;
-import service.request.LogoutRequest;
-import service.result.LogoutResult;
+import request.LogoutRequest;
+import result.LogoutResult;
 
 public class LogoutHandler
         extends AbsBaseHandler<LogoutRequest, LogoutResult> {

@@ -2,8 +2,8 @@ package handler;
 
 import com.google.gson.Gson;
 import service.UserService;
-import service.request.RegisterRequest;
-import service.result.RegisterResult;
+import request.RegisterRequest;
+import result.RegisterResult;
 
 public class RegisterHandler
         extends AbsBaseHandler<RegisterRequest, RegisterResult> {

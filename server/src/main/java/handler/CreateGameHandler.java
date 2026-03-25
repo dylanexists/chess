@@ -2,8 +2,8 @@ package handler;
 
 import com.google.gson.Gson;
 import service.GameService;
-import service.request.CreateGameRequest;
-import service.result.CreateGameResult;
+import request.CreateGameRequest;
+import result.CreateGameResult;
 
 public class CreateGameHandler
         extends AbsBaseHandler<CreateGameRequest, CreateGameResult>{

@@ -4,13 +4,13 @@ import chess.ChessGame;
 import dataaccess.*;
 import model.AuthData;
 import model.GameData;
-import service.request.CreateGameRequest;
-import service.request.JoinGameRequest;
-import service.request.ListGamesRequest;
-import service.result.ClearResult;
-import service.result.CreateGameResult;
-import service.result.JoinGameResult;
-import service.result.ListGamesResult;
+import request.CreateGameRequest;
+import request.JoinGameRequest;
+import request.ListGamesRequest;
+import result.ClearResult;
+import result.CreateGameResult;
+import result.JoinGameResult;
+import result.ListGamesResult;
 
 import java.util.*;
 

@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import model.GameData;
 import service.GameService;
-import service.request.ListGamesRequest;
-import service.result.ListGamesResult;
+import request.ListGamesRequest;
+import result.ListGamesResult;
 
 import java.util.List;
 

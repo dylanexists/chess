@@ -4,10 +4,9 @@ import com.google.gson.Gson;
 import dataaccess.*;
 import handler.*;
 import io.javalin.*;
-import model.AuthData;
+import result.*;
 import service.GameService;
 import service.UserService;
-import service.result.*;
 
 
 public class Server {
