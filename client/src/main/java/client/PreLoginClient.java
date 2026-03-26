@@ -13,8 +13,8 @@ import java.util.Scanner;
 public class PreLoginClient {
     private ServerFacade serverFacade;
 
-    public PreLoginClient(ServerFacade server) throws ResponseException {
-        serverFacade = server;
+    public PreLoginClient(ServerFacade serverFac) throws ResponseException {
+        serverFacade = serverFac;
     }
 
     public PreLoginResult run() {
