@@ -61,62 +61,90 @@ public class PostLoginClient {
         };
     }
 
-    public PostLoginResult create(String... params) throws ResponseException {
+    public PostLoginResult create(String... params) {
         if (params.length == 1) {
-            String gameName = params[0];
-            CreateGameResult createGameResult = serverFacade.createGame(new CreateGameRequest(authToken, gameName));
-            return new PostLoginResult("Game '" + gameName + "' created! Use 'list' command to view its ID",
-                    ClientRepl.ClientState.POST_LOGIN, null);
+            try {
+                String gameName = params[0];
+                CreateGameResult createGameResult = serverFacade.createGame(new CreateGameRequest(authToken, gameName));
+                return new PostLoginResult("Game '" + gameName + "' created! Use 'list' command to view its ID",
+                        ClientRepl.ClientState.POST_LOGIN, null);
+            } catch (ResponseException ex) {return new PostLoginResult("DN idk error: create", ClientRepl.ClientState.POST_LOGIN, null);}
         }
-        throw new ResponseException("Expected: create <NAME>");
+        return createError();
     }
 
-    public PostLoginResult list() throws ResponseException {
-        ListGamesResult listGamesResult = serverFacade.listGames(new ListGamesRequest(authToken));
-        List<GameData> games = listGamesResult.games();
-        HashMap<Integer, GameData> displayIDToGameMap = createGamesUserInteractableMap(games);
-        StringBuilder sb = new StringBuilder();
-        displayIDToGameMap.forEach((id, game) -> {
-            sb.append(id)
-                    .append(".  Game Name: ")
-                    .append(game.gameName())
-                    .append("    White: ")
-                    .append(game.whiteUsername() != null ? game.whiteUsername() : "empty")
-                    .append("    Black: ")
-                    .append(game.blackUsername() != null ? game.blackUsername() : "empty")
-                    .append("\n");
-        });
-        String cmdResult = sb.toString();
+    private PostLoginResult createError() {
+        String cmdResult = """
+                Create Game Error - Expected: create <NAME>
+                <NAME> should be no more and no less than one word, zero spaces.""";
         return new PostLoginResult(cmdResult, ClientRepl.ClientState.POST_LOGIN, null);
     }
 
-    public PostLoginResult join(String... params) throws ResponseException {
+    public PostLoginResult list() throws ResponseException {
+        try {
+            ListGamesResult listGamesResult = serverFacade.listGames(new ListGamesRequest(authToken));
+            List<GameData> games = listGamesResult.games();
+            HashMap<Integer, GameData> displayIDToGameMap = createGamesUserInteractableMap(games);
+            StringBuilder sb = new StringBuilder();
+            displayIDToGameMap.forEach((id, game) -> {
+                sb.append(id)
+                        .append(".  Game Name: ")
+                        .append(game.gameName())
+                        .append("    White: ")
+                        .append(game.whiteUsername() != null ? game.whiteUsername() : "empty")
+                        .append("    Black: ")
+                        .append(game.blackUsername() != null ? game.blackUsername() : "empty")
+                        .append("\n");
+            });
+            String cmdResult = sb.toString();
+            return new PostLoginResult(cmdResult, ClientRepl.ClientState.POST_LOGIN, null);
+        } catch (ResponseException ex) {return new PostLoginResult("DN idk error: list", ClientRepl.ClientState.POST_LOGIN, null);}
+    }
+
+    public PostLoginResult join(String... params) {
         if (params.length == 2) {
-            String gameIDString = params[0];
-            String playerColor = params[1];
-            if (!playerColor.equals("WHITE") && !playerColor.equals("BLACK")) {
-                throw new ResponseException("Error: 'WHITE' and 'BLACK' are the only valid team colors");
-            }
-
-            int gameID;
             try {
-                gameID = Integer.parseInt(gameIDString);
-            } catch (NumberFormatException ex) {
-                throw new ResponseException("Error: ID should be a number", ex);
-            }
+                String gameIDString = params[0];
+                String playerColor = params[1];
+                if (!playerColor.equals("WHITE") && !playerColor.equals("BLACK")) {
+                    return new PostLoginResult("Join Game Error: 'WHITE' and 'BLACK' are the only valid team colors", ClientRepl.ClientState.POST_LOGIN, null);
+                }
 
-            int trueGameID = gamesUserInteractable.get(gameID);
-            JoinGameResult joinGameResult = serverFacade.joinGame(new JoinGameRequest(authToken, playerColor, trueGameID));
-            return new PostLoginResult("Game " + gameIDString + " successfully joined!",
+                int gameID;
+                try {
+                    gameID = Integer.parseInt(gameIDString);
+                } catch (NumberFormatException ex) {
+                    return new PostLoginResult("Join Game Error: ID should be a number", ClientRepl.ClientState.POST_LOGIN, null);
+                }
+
+                if (!gamesUserInteractable.containsKey(gameID)) {
+                    return joinError();
+                }
+                int trueGameID = gamesUserInteractable.get(gameID);
+                JoinGameResult joinGameResult = serverFacade.joinGame(new JoinGameRequest(authToken, playerColor, trueGameID));
+                return new PostLoginResult("Game " + gameIDString + " successfully joined!",
                         ClientRepl.ClientState.IN_GAME, trueGameID);
+            } catch (ResponseException ex) {
+                return joinError();
+            }
         }
-        throw new ResponseException("Expected: join <ID> [WHITE|BLACK]");
+        return joinError();
+    }
+
+    private PostLoginResult joinError() {
+        String cmdResult = """
+                Join Game Error - Expected: join <ID> [WHITE|BLACK]
+                Type 'list' to see all existing games and their IDs. Ensure the ID you type exists.
+                Ensure player color is either 'WHITE' or 'BLACK' and that said color isn't already taken.""";
+        return new PostLoginResult(cmdResult, ClientRepl.ClientState.POST_LOGIN, null);
     }
 
     public PostLoginResult logout() {
-        LogoutResult logoutResult = serverFacade.logout(new LogoutRequest(authToken));
-        return new PostLoginResult("Successfully Logged Out",
-                        ClientRepl.ClientState.PRE_LOGIN, null);
+        try {
+            LogoutResult logoutResult = serverFacade.logout(new LogoutRequest(authToken));
+            return new PostLoginResult("Successfully Logged Out",
+                            ClientRepl.ClientState.PRE_LOGIN, null);
+        } catch (ResponseException ex) {return new PostLoginResult("DN idk error: logout", ClientRepl.ClientState.POST_LOGIN, null);}
     }
 
     public String help() {

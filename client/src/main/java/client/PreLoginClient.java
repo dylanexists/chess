@@ -55,25 +55,44 @@ public class PreLoginClient {
 
     public PreLoginResult register (String... params) throws ResponseException {
         if (params.length == 3) {
-            String username = params[0];
-            String password = params[1];
-            String email = params[2];
-            RegisterResult registerResult = serverFacade.register(new RegisterRequest(username, password, email));
-            String authToken = registerResult.authToken();
-            return successfulLogin(username, authToken);
+            try {
+                String username = params[0];
+                String password = params[1];
+                String email = params[2];
+                RegisterResult registerResult = serverFacade.register(new RegisterRequest(username, password, email));
+                String authToken = registerResult.authToken();
+                return successfulLogin(username, authToken);
+            } catch (ResponseException ex) {return new PreLoginResult("Register Error - Username might already be taken, try a new one.", ClientRepl.ClientState.PRE_LOGIN, null);}
         }
-        throw new ResponseException("Expected: register <USERNAME> <PASSWORD> <EMAIL>");
+        return registerError();
+    }
+
+    private PreLoginResult registerError() {
+        String cmdResult = """
+                Register Error - Expected: register <USERNAME> <PASSWORD> <EMAIL>
+                Each input should be one word, no spaces.""";
+        return new PreLoginResult(cmdResult, ClientRepl.ClientState.PRE_LOGIN, null);
     }
 
     public PreLoginResult login (String... params) throws ResponseException {
         if (params.length == 2) {
-            String username = params[0];
-            String password = params[1];
-            LoginResult loginResult = serverFacade.login(new LoginRequest(username, password));
-            String authToken = loginResult.authToken();
-            return successfulLogin(username, authToken);
+            try {
+                String username = params[0];
+                String password = params[1];
+                LoginResult loginResult = serverFacade.login(new LoginRequest(username, password));
+                String authToken = loginResult.authToken();
+                return successfulLogin(username, authToken);
+            } catch (ResponseException ex) {return login();}
         }
-        throw new ResponseException("Expected: login <USERNAME> <PASSWORD>");
+        return loginError();
+    }
+
+    private PreLoginResult loginError() {
+        String cmdResult = """
+                Login Error - Expected: login <USERNAME> <PASSWORD>
+                Make sure username and password are spelled correctly.
+                If you do not have an account, type 'help' to learn how to use 'register'.""";
+        return new PreLoginResult(cmdResult, ClientRepl.ClientState.PRE_LOGIN, null);
     }
 
     private PreLoginResult successfulLogin(String username, String authToken) {
