@@ -11,7 +11,7 @@ public class ClientRepl {
 
     public ClientRepl(String serverUrl) throws ResponseException {
         server = new ServerFacade(serverUrl);
-        preLogin = new PreLoginClient();
+        preLogin = new PreLoginClient(server);
         postLogin = new PostLoginClient();
         inGame = new InGameClient();
     }
@@ -23,6 +23,7 @@ public class ClientRepl {
         while (state != ClientState.EXIT) {
             switch (state) {
                 case PRE_LOGIN:
+                    preLogin.run();
                     break;
                 case POST_LOGIN:
                     break;
