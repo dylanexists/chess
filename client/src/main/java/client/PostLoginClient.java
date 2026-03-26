@@ -4,9 +4,11 @@ import model.GameData;
 import request.CreateGameRequest;
 import request.JoinGameRequest;
 import request.ListGamesRequest;
+import request.LogoutRequest;
 import result.CreateGameResult;
 import result.JoinGameResult;
 import result.ListGamesResult;
+import result.LogoutResult;
 import server.ResponseException;
 import server.ServerFacade;
 
@@ -53,6 +55,7 @@ public class PostLoginClient {
             case "create" -> create(params);
             case "list" -> list();
             case "join" -> join(params);
+            case "logout" -> logout();
             case "quit" -> new PostLoginResult("", ClientRepl.ClientState.EXIT, null);
             default -> new PostLoginResult(help(), ClientRepl.ClientState.POST_LOGIN, null);
         };
@@ -108,6 +111,12 @@ public class PostLoginClient {
                         ClientRepl.ClientState.IN_GAME, trueGameID);
         }
         throw new ResponseException("Expected: join <ID> [WHITE|BLACK]");
+    }
+
+    public PostLoginResult logout() {
+        LogoutResult logoutResult = serverFacade.logout(new LogoutRequest(authToken));
+        return new PostLoginResult("Successfully Logged Out",
+                        ClientRepl.ClientState.PRE_LOGIN, null);
     }
 
     public String help() {
