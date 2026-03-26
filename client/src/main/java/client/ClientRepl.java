@@ -18,12 +18,15 @@ public class ClientRepl {
 
     public void run() {
         ClientState state = ClientState.PRE_LOGIN;
+        String authToken = null;
         System.out.println("Welcome to Chess!\n");
 
         while (state != ClientState.EXIT) {
             switch (state) {
                 case PRE_LOGIN:
-                    preLogin.run();
+                    var preResult = preLogin.run();
+                    state = preResult.nextState();
+                    authToken = preResult.authToken();
                     break;
                 case POST_LOGIN:
                     break;
