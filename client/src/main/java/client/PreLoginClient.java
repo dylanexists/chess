@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 public class PreLoginClient {
-    private ServerFacade serverFacade;
+    private final ServerFacade serverFacade;
 
     public PreLoginClient(ServerFacade serverFac) throws ResponseException {
         serverFacade = serverFac;

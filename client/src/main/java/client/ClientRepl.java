@@ -13,7 +13,7 @@ public class ClientRepl {
         serverFac = new ServerFacade(serverUrl);
         preLogin = new PreLoginClient(serverFac);
         postLogin = new PostLoginClient(serverFac);
-        inGame = new InGameClient();
+        inGame = new InGameClient(serverFac);
     }
 
     public void run() {
@@ -35,6 +35,8 @@ public class ClientRepl {
                     gameID = postResult.gameID();
                     break;
                 case IN_GAME:
+                    var inGameResult = inGame.run(authToken, gameID);
+                    state = inGameResult.nextState();
                     break;
             }
         }
