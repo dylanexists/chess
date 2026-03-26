@@ -15,8 +15,14 @@ public class ServerFacade {
 
     public ServerFacade(String url) {serverUrl = url;}
 
-    public RegisterResult register(RegisterRequest request) {
-        return null;
+    public RegisterResult register(RegisterRequest request) throws ResponseException {
+        try {
+            var httpRequest = buildRequest("POST", "/user", request);
+            var response = sendRequest(httpRequest);
+            return handleResponse(response, RegisterResult.class);
+        } catch (ResponseException ex) {
+            throw new ResponseException("Failed to register: " + ex.getMessage(), ex);
+        }
     }
 
     public LoginResult login(LoginRequest request) {
@@ -40,7 +46,13 @@ public class ServerFacade {
     }
 
     public ClearResult clear(ClearRequest request) {
-        return null;
+        try {
+            var httpRequest = buildRequest("DELETE", "/db", request);
+            var response = sendRequest(httpRequest);
+            return handleResponse(response, ClearResult.class);
+        } catch (ResponseException ex) {
+            throw new ResponseException("Failed to clear: " + ex.getMessage(), ex);
+        }
     }
 
     private HttpRequest buildRequest(String method, String path, Object body) {
