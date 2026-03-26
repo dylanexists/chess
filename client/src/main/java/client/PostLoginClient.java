@@ -1,16 +1,20 @@
 package client;
 
+import model.GameData;
 import request.CreateGameRequest;
+import request.ListGamesRequest;
 import result.CreateGameResult;
+import result.ListGamesResult;
 import server.ResponseException;
 import server.ServerFacade;
 
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
 
 public class PostLoginClient {
     private final ServerFacade serverFacade;
     private volatile String authToken;
+    private final HashMap<Integer, GameData> gamesUserInteractable = new HashMap<>();
+
 
     public PostLoginClient(ServerFacade serverFac) {
         serverFacade = serverFac;
@@ -44,6 +48,7 @@ public class PostLoginClient {
         String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
         return switch (cmd) {
             case "create" -> create(params);
+            case "list" -> list();
             case "quit" -> new PostLoginResult("", ClientRepl.ClientState.EXIT, null);
             default -> new PostLoginResult(help(), ClientRepl.ClientState.POST_LOGIN, null);
         };
@@ -57,6 +62,32 @@ public class PostLoginClient {
                     ClientRepl.ClientState.POST_LOGIN, null);
         }
         throw new ResponseException("Expected: create <NAME>");
+    }
+
+    public PostLoginResult list() throws ResponseException {
+        ListGamesResult listGamesResult = serverFacade.listGames(new ListGamesRequest(authToken));
+        List<GameData> games = listGamesResult.games();
+        createGamesUserInteractableMap(games);
+        StringBuilder sb = new StringBuilder();
+        gamesUserInteractable.forEach((key, game) -> {
+            sb.append(key)
+                    .append(".  Game Name: ")
+                    .append(game.gameName())
+                    .append("    White: ")
+                    .append(game.whiteUsername() != null ? game.whiteUsername() : "empty")
+                    .append("    Black: ")
+                    .append(game.blackUsername() != null ? game.blackUsername() : "empty")
+                    .append("\n");
+        });
+        String cmdResult = sb.toString();
+        return new PostLoginResult(cmdResult, ClientRepl.ClientState.POST_LOGIN, null);
+    }
+
+    private void createGamesUserInteractableMap(List<GameData> games) {
+        gamesUserInteractable.clear();
+        for (int i = 0; i < games.size(); i++) {
+            gamesUserInteractable.put(i + 1, games.get(i));
+        }
     }
 
     public String help() {
