@@ -22,9 +22,9 @@ public class ListGamesHandler
     @Override
     public String serialize(ListGamesResult result) {
         if (result.message() != null){return gson.toJson(result);}
-        List<GameData> gamesList = result.gamesList();
+        List<GameData> games = result.games();
         JsonObject resultJson = new JsonObject();
-        resultJson.add("games", gson.toJsonTree(gamesList));
+        resultJson.add("games", gson.toJsonTree(games));
         return gson.toJson(resultJson);
     }
 

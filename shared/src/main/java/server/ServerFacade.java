@@ -36,7 +36,13 @@ public class ServerFacade {
     }
 
     public LogoutResult logout(LogoutRequest request) {
-        return null;
+        try {
+            var httpRequest = buildRequest("DELETE", "/session", request, request.authToken());
+            var response = sendRequest(httpRequest);
+            return handleResponse(response, LogoutResult.class);
+        } catch (ResponseException ex) {
+            throw new ResponseException("Failed to logout: " + ex.getMessage(), ex);
+        }
     }
 
     public CreateGameResult createGame(CreateGameRequest request) {
@@ -50,11 +56,23 @@ public class ServerFacade {
     }
 
     public ListGamesResult listGames(ListGamesRequest request) {
-        return null;
+        try {
+            var httpRequest = buildRequest("GET", "/game", request, request.authToken());
+            var response = sendRequest(httpRequest);
+            return handleResponse(response, ListGamesResult.class);
+        } catch (ResponseException ex) {
+            throw new ResponseException("Failed to list games: " + ex.getMessage(), ex);
+        }
     }
 
     public JoinGameResult joinGame(JoinGameRequest request) {
-        return null;
+        try {
+            var httpRequest = buildRequest("PUT", "/game", request, request.authToken());
+            var response = sendRequest(httpRequest);
+            return handleResponse(response, JoinGameResult.class);
+        } catch (ResponseException ex) {
+            throw new ResponseException("Failed to join game: " + ex.getMessage(), ex);
+        }
     }
 
     public ClearResult clear(ClearRequest request) {

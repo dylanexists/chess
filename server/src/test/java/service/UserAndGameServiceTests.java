@@ -192,7 +192,7 @@ class UserAndGameServiceTests {
         String authToken = loginResult.authToken();
         gameService.createGame(new CreateGameRequest(authToken, "testGame"));
         ListGamesResult result = gameService.listGames(new ListGamesRequest(authToken));
-        assertNotNull(result.gamesList());
+        assertNotNull(result.games());
         assertNull(result.message());
     }
 
@@ -203,7 +203,7 @@ class UserAndGameServiceTests {
         //Result for each invalid input of Stream below
         ListGamesResult result = gameService.listGames(request);
         //Assert error message is correct
-        assertNull(result.gamesList());
+        assertNull(result.games());
         assertEquals("Error: unauthorized", result.message());
     }
     private static Stream<ListGamesRequest> invalidListGamesRequests() {

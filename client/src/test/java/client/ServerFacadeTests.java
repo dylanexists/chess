@@ -7,6 +7,8 @@ import server.ResponseException;
 import server.Server;
 import server.ServerFacade;
 
+import java.awt.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ServerFacadeTests {
@@ -91,6 +93,25 @@ public class ServerFacadeTests {
     }
 
     @Test
+    @DisplayName("Logout ServerFacade Positive Test")
+    public void logoutSuccess() {
+        LoginResult lResult = serverFacade.login(new LoginRequest(existingUsername, "password"));
+        String authToken = lResult.authToken();
+        LogoutRequest request = new LogoutRequest(authToken);
+        LogoutResult result = serverFacade.logout(request);
+        assertNull(result.message());
+    }
+
+    @Test
+    @DisplayName("Logout ServerFacade Negative Test")
+    public void logoutFailure() {
+        LogoutRequest logoutRequest = new LogoutRequest("fakeAuth");
+        assertThrows(ResponseException.class, () -> {
+            LogoutResult result = serverFacade.logout(logoutRequest);
+        });
+    }
+
+    @Test
     @DisplayName("CreateGame ServerFacade Positive Test")
     public void createGameSuccess() {
         LoginResult lResult = serverFacade.login(new LoginRequest(existingUsername, "password"));
@@ -110,6 +131,63 @@ public class ServerFacadeTests {
         CreateGameRequest createGameRequest = new CreateGameRequest(nonExistentAuthToken, gameName);
         assertThrows(ResponseException.class, () -> {
             CreateGameResult result = serverFacade.createGame(createGameRequest);
+        });
+    }
+
+    @Test
+    @DisplayName("ListGames ServerFacade Positive Test")
+    public void listGamesSuccess() {
+        LoginResult lResult = serverFacade.login(new LoginRequest(existingUsername, "password"));
+        String authToken = lResult.authToken();
+        ListGamesRequest request = new ListGamesRequest(authToken);
+        ListGamesResult result = serverFacade.listGames(request);
+        assertNotNull(result.games());
+        assertEquals(0, result.games().size());
+        serverFacade.createGame(new CreateGameRequest(authToken, "placeHolderGame"));
+        ListGamesResult result2 = serverFacade.listGames(request);
+        assertNotNull(result2.games());
+        assertEquals(1, result2.games().size());
+        assertNull(result2.message());
+    }
+
+    @Test
+    @DisplayName("ListGames ServerFacade Negative Test")
+    public void listGamesFailure() {
+        String nonExistentAuthToken = "abc123";
+        ListGamesRequest request = new ListGamesRequest(nonExistentAuthToken);
+        assertThrows(ResponseException.class, () -> {
+            ListGamesResult result = serverFacade.listGames(request);
+        });
+    }
+
+    @Test
+    @DisplayName("JoinGame ServerFacade Positive Test")
+    public void joinGameSuccess() {
+        LoginResult lResult = serverFacade.login(new LoginRequest(existingUsername, "password"));
+        String authToken = lResult.authToken();
+        CreateGameResult gResult = serverFacade.createGame(new CreateGameRequest(authToken, "placeHolderGame"));
+        Integer gameID = gResult.gameID();
+        JoinGameRequest request = new JoinGameRequest(authToken, "WHITE", gameID);
+        JoinGameResult result = serverFacade.joinGame(request);
+        assertNull(result.message());
+    }
+
+    @Test
+    @DisplayName("JoinGame ServerFacade Negative Test")
+    public void joinGameFailure() {
+        LoginResult lResult = serverFacade.login(new LoginRequest(existingUsername, "password"));
+        String authToken = lResult.authToken();
+        CreateGameResult gResult = serverFacade.createGame(new CreateGameRequest(authToken, "placeHolderGame"));
+        Integer gameID = gResult.gameID();
+        JoinGameRequest request = new JoinGameRequest(authToken, "WHITE", gameID);
+        JoinGameResult result = serverFacade.joinGame(request);
+        assertNull(result.message());
+        RegisterResult rResult2 = serverFacade.register(new RegisterRequest("user2", "pass2", "email2@gmail.com"));
+        LoginResult lResult2 = serverFacade.login(new LoginRequest(rResult2.username(), "pass2"));
+        String authTokenUser2 = lResult2.authToken();
+        JoinGameRequest request2 = new JoinGameRequest(authTokenUser2, "WHITE", gameID);
+        assertThrows(ResponseException.class, () -> {
+            JoinGameResult result2 = serverFacade.joinGame(request2);
         });
     }
 }

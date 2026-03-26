@@ -73,9 +73,9 @@ public class GameService {
         if (authToken == null || authToken.isEmpty()){return ListGamesResult.unauthorized();}
         try {
             authDao.getAuth(authToken); //checks if authToken exists
-            List<GameData> gamesList = new ArrayList<>();
-            gamesList = gameDao.listGames();
-            return new ListGamesResult(gamesList, null);
+            List<GameData> games = new ArrayList<>();
+            games = gameDao.listGames();
+            return new ListGamesResult(games, null);
         } catch (NotFoundException e) {
             return ListGamesResult.unauthorized();
         } catch (QueryException e){
