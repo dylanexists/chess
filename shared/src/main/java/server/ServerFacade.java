@@ -17,7 +17,7 @@ public class ServerFacade {
 
     public RegisterResult register(RegisterRequest request) throws ResponseException {
         try {
-            var httpRequest = buildRequest("POST", "/user", request);
+            var httpRequest = buildRequest("POST", "/user", request, null);
             var response = sendRequest(httpRequest);
             return handleResponse(response, RegisterResult.class);
         } catch (ResponseException ex) {
@@ -26,7 +26,13 @@ public class ServerFacade {
     }
 
     public LoginResult login(LoginRequest request) {
-        return null;
+        try {
+            var httpRequest = buildRequest("POST", "/session", request, null);
+            var response = sendRequest(httpRequest);
+            return handleResponse(response, LoginResult.class);
+        } catch (ResponseException ex) {
+            throw new ResponseException("Failed to login: " + ex.getMessage(), ex);
+        }
     }
 
     public LogoutResult logout(LogoutRequest request) {
@@ -34,7 +40,13 @@ public class ServerFacade {
     }
 
     public CreateGameResult createGame(CreateGameRequest request) {
-        return null;
+        try {
+            var httpRequest = buildRequest("POST", "/game", request, request.authToken());
+            var response = sendRequest(httpRequest);
+            return handleResponse(response, CreateGameResult.class);
+        } catch (ResponseException ex) {
+            throw new ResponseException("Failed to create game: " + ex.getMessage(), ex);
+        }
     }
 
     public ListGamesResult listGames(ListGamesRequest request) {
@@ -47,7 +59,7 @@ public class ServerFacade {
 
     public ClearResult clear(ClearRequest request) {
         try {
-            var httpRequest = buildRequest("DELETE", "/db", request);
+            var httpRequest = buildRequest("DELETE", "/db", request, null);
             var response = sendRequest(httpRequest);
             return handleResponse(response, ClearResult.class);
         } catch (ResponseException ex) {
@@ -55,12 +67,15 @@ public class ServerFacade {
         }
     }
 
-    private HttpRequest buildRequest(String method, String path, Object body) {
+    private HttpRequest buildRequest(String method, String path, Object body, String authToken) {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .method(method, makeRequestBody(body));
         if (body != null) {
             request.setHeader("Content-Type", "application/json");
+        }
+        if (authToken != null) {
+            request.setHeader("Authorization", authToken);
         }
         return request.build();
     }
