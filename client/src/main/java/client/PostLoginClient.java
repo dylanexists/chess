@@ -1,5 +1,6 @@
 package client;
 
+import chess.ChessGame;
 import model.GameData;
 import request.CreateGameRequest;
 import request.JoinGameRequest;
@@ -56,8 +57,8 @@ public class PostLoginClient {
             case "list" -> list();
             case "join" -> join(params);
             case "logout" -> logout();
-            case "quit" -> new PostLoginResult("", ClientRepl.ClientState.EXIT, null);
-            default -> new PostLoginResult(help(), ClientRepl.ClientState.POST_LOGIN, null);
+            case "quit" -> new PostLoginResult("", ClientRepl.ClientState.EXIT, null, null);
+            default -> new PostLoginResult(help(), ClientRepl.ClientState.POST_LOGIN, null, null);
         };
     }
 
@@ -66,9 +67,10 @@ public class PostLoginClient {
             try {
                 String gameName = params[0];
                 CreateGameResult createGameResult = serverFacade.createGame(new CreateGameRequest(authToken, gameName));
+                list(); //update gamesList
                 return new PostLoginResult("Game '" + gameName + "' created! Use 'list' command to view its ID",
-                        ClientRepl.ClientState.POST_LOGIN, null);
-            } catch (ResponseException ex) {return new PostLoginResult("DN idk error: create", ClientRepl.ClientState.POST_LOGIN, null);}
+                        ClientRepl.ClientState.POST_LOGIN, null, null);
+            } catch (ResponseException ex) {return new PostLoginResult("DN idk error: create", ClientRepl.ClientState.POST_LOGIN, null, null);}
         }
         return createError();
     }
@@ -77,7 +79,7 @@ public class PostLoginClient {
         String cmdResult = """
                 Create Game Error - Expected: create <NAME>
                 <NAME> should be no more and no less than one word, zero spaces.""";
-        return new PostLoginResult(cmdResult, ClientRepl.ClientState.POST_LOGIN, null);
+        return new PostLoginResult(cmdResult, ClientRepl.ClientState.POST_LOGIN, null, null);
     }
 
     public PostLoginResult list() throws ResponseException {
@@ -97,33 +99,35 @@ public class PostLoginClient {
                         .append("\n");
             });
             String cmdResult = sb.toString();
-            return new PostLoginResult(cmdResult, ClientRepl.ClientState.POST_LOGIN, null);
-        } catch (ResponseException ex) {return new PostLoginResult("DN idk error: list", ClientRepl.ClientState.POST_LOGIN, null);}
+            return new PostLoginResult(cmdResult, ClientRepl.ClientState.POST_LOGIN, null, null);
+        } catch (ResponseException ex) {return new PostLoginResult("DN idk error: list", ClientRepl.ClientState.POST_LOGIN, null, null);}
     }
 
     public PostLoginResult join(String... params) {
         if (params.length == 2) {
             try {
                 String gameIDString = params[0];
-                String playerColor = params[1];
-                if (!playerColor.equals("WHITE") && !playerColor.equals("BLACK")) {
-                    return new PostLoginResult("Join Game Error: 'WHITE' and 'BLACK' are the only valid team colors", ClientRepl.ClientState.POST_LOGIN, null);
+                String playerColorString = params[1];
+                if (!playerColorString.equals("WHITE") && !playerColorString.equals("BLACK")) {
+                    return new PostLoginResult("Join Game Error: 'WHITE' and 'BLACK' are the only valid team colors",
+                            ClientRepl.ClientState.POST_LOGIN, null, null);
                 }
 
                 int gameID;
                 try {
                     gameID = Integer.parseInt(gameIDString);
                 } catch (NumberFormatException ex) {
-                    return new PostLoginResult("Join Game Error: ID should be a number", ClientRepl.ClientState.POST_LOGIN, null);
+                    return new PostLoginResult("Join Game Error: ID should be a number", ClientRepl.ClientState.POST_LOGIN, null, null);
                 }
 
                 if (!gamesUserInteractable.containsKey(gameID)) {
                     return joinError();
                 }
                 int trueGameID = gamesUserInteractable.get(gameID);
-                JoinGameResult joinGameResult = serverFacade.joinGame(new JoinGameRequest(authToken, playerColor, trueGameID));
+                JoinGameResult joinGameResult = serverFacade.joinGame(new JoinGameRequest(authToken, playerColorString, trueGameID));
+                ChessGame.TeamColor playerColor = playerColorString.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
                 return new PostLoginResult("Game " + gameIDString + " successfully joined!",
-                        ClientRepl.ClientState.IN_GAME, trueGameID);
+                        ClientRepl.ClientState.IN_GAME, trueGameID, playerColor);
             } catch (ResponseException ex) {
                 return joinError();
             }
@@ -136,15 +140,15 @@ public class PostLoginClient {
                 Join Game Error - Expected: join <ID> [WHITE|BLACK]
                 Type 'list' to see all existing games and their IDs. Ensure the ID you type exists.
                 Ensure player color is either 'WHITE' or 'BLACK' and that said color isn't already taken.""";
-        return new PostLoginResult(cmdResult, ClientRepl.ClientState.POST_LOGIN, null);
+        return new PostLoginResult(cmdResult, ClientRepl.ClientState.POST_LOGIN, null, null);
     }
 
     public PostLoginResult logout() {
         try {
             LogoutResult logoutResult = serverFacade.logout(new LogoutRequest(authToken));
             return new PostLoginResult("Successfully Logged Out",
-                            ClientRepl.ClientState.PRE_LOGIN, null);
-        } catch (ResponseException ex) {return new PostLoginResult("DN idk error: logout", ClientRepl.ClientState.POST_LOGIN, null);}
+                            ClientRepl.ClientState.PRE_LOGIN, null, null);
+        } catch (ResponseException ex) {return new PostLoginResult("DN idk error: logout", ClientRepl.ClientState.POST_LOGIN, null, null);}
     }
 
     public String help() {

@@ -1,5 +1,6 @@
 package client;
 
+import chess.ChessGame;
 import server.ResponseException;
 import server.ServerFacade;
 
@@ -20,6 +21,7 @@ public class ClientRepl {
         ClientState state = ClientState.PRE_LOGIN;
         String authToken = null;
         Integer gameID = null;
+        ChessGame.TeamColor playerColor = null;
         System.out.println("Welcome to Chess!\n");
 
         while (state != ClientState.EXIT) {
@@ -33,9 +35,10 @@ public class ClientRepl {
                     var postResult = postLogin.run(authToken);
                     state = postResult.nextState();
                     gameID = postResult.gameID();
+                    playerColor = postResult.playerColor();
                     break;
                 case IN_GAME:
-                    var inGameResult = inGame.run(authToken, gameID);
+                    var inGameResult = inGame.run(authToken, gameID, playerColor);
                     state = inGameResult.nextState();
                     break;
             }

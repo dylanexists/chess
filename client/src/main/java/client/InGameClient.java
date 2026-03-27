@@ -1,7 +1,9 @@
 package client;
 
+import chess.ChessGame;
 import server.ResponseException;
 import server.ServerFacade;
+import ui.DrawnChessBoard;
 
 import java.util.Arrays;
 import java.util.Scanner;
@@ -10,20 +12,24 @@ public class InGameClient {
     private final ServerFacade serverFacade;
     private volatile String authToken;
     private volatile Integer gameID;
+    private volatile ChessGame.TeamColor playerColor;
+    private volatile DrawnChessBoard drawnChessBoard;
 
     public InGameClient(ServerFacade serverFac) throws ResponseException {
         serverFacade = serverFac;
     }
 
-    public InGameResult run(String authToken, Integer gameID) {
+    public InGameResult run(String authToken, Integer gameID, ChessGame.TeamColor playerColor) {
         this.authToken = authToken;
         this.gameID = gameID;
+        this.playerColor = playerColor;
         Scanner scanner = new Scanner(System.in);
         InGameResult result;
+        drawnChessBoard = new DrawnChessBoard(new ChessGame());
         while (true) {
+            drawnChessBoard.printBoard(playerColor); //playerColor = null is spectator, printBoard() auto assigns view to white
             printPrompt();
             String line = scanner.nextLine();
-
             try {
                 result = eval(line);
                 System.out.println(result.cmdResult());
