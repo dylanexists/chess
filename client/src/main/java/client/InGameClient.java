@@ -1,8 +1,8 @@
 package client;
 
 import chess.ChessGame;
-import server.ResponseException;
-import server.ServerFacade;
+import facade.ResponseException;
+import facade.ServerFacade;
 import ui.DrawnChessBoard;
 
 import java.util.Arrays;

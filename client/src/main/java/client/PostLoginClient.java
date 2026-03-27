@@ -10,8 +10,8 @@ import result.CreateGameResult;
 import result.JoinGameResult;
 import result.ListGamesResult;
 import result.LogoutResult;
-import server.ResponseException;
-import server.ServerFacade;
+import facade.ResponseException;
+import facade.ServerFacade;
 
 import java.util.*;
 

@@ -16,10 +16,10 @@ public class DrawnChessBoard {
 
     private static ChessGame chessGame;
     private static String currentBGColor; //top left square is always light
-    private volatile boolean REVERSED;
+    private volatile boolean reversed;
 
-    public static final String myDarkGreen = SET_BG_COLOR_DARK_GREEN;
-    public static final String myLightGreen = SET_BG_COLOR_GREEN;
+    public static final String MY_DARK_GREEN = SET_BG_COLOR_DARK_GREEN;
+    public static final String MY_LIGHT_GREEN = SET_BG_COLOR_GREEN;
     private static final int BOARD_SIZE_IN_SQUARES = 8;
     public static final String TINY = "\u2004"; // without this, things don't line up
     public static final String TEENY = "\u2006"; // this too
@@ -33,8 +33,8 @@ public class DrawnChessBoard {
     public void printBoard(ChessGame.TeamColor color) {
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
         out.print(ERASE_SCREEN);
-        currentBGColor = myLightGreen; //top left square always light color
-        REVERSED = color == ChessGame.TeamColor.BLACK; //reverse is true if it's black player's view
+        currentBGColor = MY_LIGHT_GREEN; //top left square always light color
+        reversed = color == ChessGame.TeamColor.BLACK; //reverse is true if it's black player's view
 
         drawHeader(out);
         drawChess(out);
@@ -44,10 +44,10 @@ public class DrawnChessBoard {
     }
 
     private void drawChess(PrintStream out) {
-        int topNumberRightLetter = REVERSED ? 1 : 8; //the top left number (ex. 8) is the bottom right letter (ex. h)
-        int bottomNumberLeftLetter = REVERSED ? 8 : 1; //Ex. top left will be 1, h (8) or 8, a (1)
-        int step = REVERSED ? 1 : -1;
-        for (int r = topNumberRightLetter; r != (bottomNumberLeftLetter + step); r += step) { //iterates i to the correct number, regardless of board orientation
+        int topNumberRightLetter = reversed ? 1 : 8; //the top left number (ex. 8) is the bottom right letter (ex. h)
+        int bottomNumberLeftLetter = reversed ? 8 : 1; //Ex. top left will be 1, h (8) or 8, a (1)
+        int step = reversed ? 1 : -1; //iterates r and c to the correct number, regardless of board orientation
+        for (int r = topNumberRightLetter; r != (bottomNumberLeftLetter + step); r += step) {
             out.print(SET_BG_COLOR_BLUE);
             drawBoarderSquare(out, " " + r + " ");
             for (int c = bottomNumberLeftLetter; c != topNumberRightLetter - step; c -= step){
@@ -93,7 +93,7 @@ public class DrawnChessBoard {
     }
 
     private void alternateSquareColor() {
-        currentBGColor = currentBGColor.equals(myLightGreen) ? myDarkGreen : myLightGreen;
+        currentBGColor = currentBGColor.equals(MY_LIGHT_GREEN) ? MY_DARK_GREEN : MY_LIGHT_GREEN;
     }
 
     public void drawHeader(PrintStream out) {
@@ -102,7 +102,7 @@ public class DrawnChessBoard {
         out.print(EMPTY); //corner
 
         String[] headers = {"a", "b", "c", "d", "e", "f", "g", "h"};
-        if (!REVERSED) {
+        if (!reversed) {
             for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES; boardCol++) {
                 drawBigHeader(out, headers[boardCol]);
             }

@@ -3,11 +3,9 @@ package client;
 import org.junit.jupiter.api.*;
 import request.*;
 import result.*;
-import server.ResponseException;
+import facade.ResponseException;
 import server.Server;
-import server.ServerFacade;
-
-import java.awt.*;
+import facade.ServerFacade;
 
 import static org.junit.jupiter.api.Assertions.*;
 

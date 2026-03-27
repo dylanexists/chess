@@ -4,8 +4,8 @@ import request.LoginRequest;
 import request.RegisterRequest;
 import result.LoginResult;
 import result.RegisterResult;
-import server.ResponseException;
-import server.ServerFacade;
+import facade.ResponseException;
+import facade.ServerFacade;
 
 import java.util.Arrays;
 import java.util.Scanner;
@@ -62,7 +62,9 @@ public class PreLoginClient {
                 RegisterResult registerResult = serverFacade.register(new RegisterRequest(username, password, email));
                 String authToken = registerResult.authToken();
                 return successfulLogin(username, authToken);
-            } catch (ResponseException ex) {return new PreLoginResult("Register Error - Username might already be taken, try a new one.", ClientRepl.ClientState.PRE_LOGIN, null);}
+            } catch (ResponseException ex) {
+                return new PreLoginResult("Register Error - Username might already be taken, try a new one.",
+                        ClientRepl.ClientState.PRE_LOGIN, null);}
         }
         return registerError();
     }
