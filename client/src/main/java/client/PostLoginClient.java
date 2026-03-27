@@ -56,6 +56,7 @@ public class PostLoginClient {
             case "create" -> create(params);
             case "list" -> list();
             case "join" -> join(params);
+            case "observe" -> observe(params);
             case "logout" -> logout();
             case "quit" -> new PostLoginResult("", ClientRepl.ClientState.EXIT, null, null);
             default -> new PostLoginResult(help(), ClientRepl.ClientState.POST_LOGIN, null, null);
@@ -140,6 +141,39 @@ public class PostLoginClient {
                 Join Game Error - Expected: join <ID> [WHITE|BLACK]
                 Type 'list' to see all existing games and their IDs. Ensure the ID you type exists.
                 Ensure player color is either 'WHITE' or 'BLACK' and that said color isn't already taken.""";
+        return new PostLoginResult(cmdResult, ClientRepl.ClientState.POST_LOGIN, null, null);
+    }
+
+    public PostLoginResult observe(String... params) {
+        if (params.length == 1){
+            try {
+                String gameIDString = params[0];
+                int gameID;
+                try {
+                    gameID = Integer.parseInt(gameIDString);
+                } catch (NumberFormatException ex) {
+                    return new PostLoginResult("Observe Game Error: ID should be a number", ClientRepl.ClientState.POST_LOGIN, null, null);
+                }
+
+                if (!gamesUserInteractable.containsKey(gameID)) {
+                    return observeError();
+                }
+                int trueGameID = gamesUserInteractable.get(gameID);
+                return new PostLoginResult("Joining Game " + gameIDString + " to observe!",
+                        ClientRepl.ClientState.IN_GAME, trueGameID, null); //null playerColor means spectator
+
+            } catch (ResponseException ex) {
+                return observeError();
+            }
+        }
+        return observeError();
+    }
+
+    private PostLoginResult observeError() {
+        String cmdResult = """
+                Observe Game Error - Expected: observe <ID>
+                Type 'list' to see all existing games and their IDs. Ensure the ID you type exists.
+                <ID> should be no more and no less than one number, zero spaces.""";
         return new PostLoginResult(cmdResult, ClientRepl.ClientState.POST_LOGIN, null, null);
     }
 
