@@ -1,11 +1,10 @@
 package client;
 
 import chess.ChessGame;
+import client.facade.ServerFacade;
 import client.websocket.ServerMessageObserver;
 import facade.ResponseException;
-import facade.ServerFacade;
 import ui.DrawnChessBoard;
-import ui.EscapeSequences;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;

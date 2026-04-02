@@ -1,6 +1,7 @@
 package client;
 
 import chess.ChessGame;
+import client.facade.ServerFacade;
 import model.GameData;
 import request.CreateGameRequest;
 import request.JoinGameRequest;
@@ -11,7 +12,6 @@ import result.JoinGameResult;
 import result.ListGamesResult;
 import result.LogoutResult;
 import facade.ResponseException;
-import facade.ServerFacade;
 
 import java.util.*;
 

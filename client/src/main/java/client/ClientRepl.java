@@ -1,8 +1,8 @@
 package client;
 
 import chess.ChessGame;
+import client.facade.ServerFacade;
 import facade.ResponseException;
-import facade.ServerFacade;
 
 public class ClientRepl {
     private final ServerFacade serverFac;

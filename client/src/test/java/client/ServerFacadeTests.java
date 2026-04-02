@@ -1,11 +1,11 @@
 package client;
 
+import client.facade.ServerFacade;
 import org.junit.jupiter.api.*;
 import request.*;
 import result.*;
 import facade.ResponseException;
 import server.Server;
-import facade.ServerFacade;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -1,6 +1,7 @@
-package facade;
+package client.facade;
 
 import com.google.gson.Gson;
+import facade.ResponseException;
 import request.*;
 import result.*;
 
@@ -13,7 +14,9 @@ public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
     private final String serverUrl;
 
-    public ServerFacade(String url) {serverUrl = url;}
+    public ServerFacade(String url) {
+        serverUrl = url;
+    }
 
     public RegisterResult register(RegisterRequest request) throws ResponseException {
         try {

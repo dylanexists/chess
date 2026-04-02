@@ -1,11 +1,11 @@
 package client;
 
+import client.facade.ServerFacade;
 import request.LoginRequest;
 import request.RegisterRequest;
 import result.LoginResult;
 import result.RegisterResult;
 import facade.ResponseException;
-import facade.ServerFacade;
 
 import java.util.Arrays;
 import java.util.Scanner;
