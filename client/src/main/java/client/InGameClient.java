@@ -1,14 +1,22 @@
 package client;
 
 import chess.ChessGame;
+import client.websocket.ServerMessageObserver;
 import facade.ResponseException;
 import facade.ServerFacade;
 import ui.DrawnChessBoard;
+import ui.EscapeSequences;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
 import java.util.Arrays;
 import java.util.Scanner;
 
-public class InGameClient {
+import static ui.EscapeSequences.*;
+
+public class InGameClient implements ServerMessageObserver {
     private final ServerFacade serverFacade;
     private volatile String authToken;
     private volatile Integer gameID;
@@ -17,6 +25,15 @@ public class InGameClient {
 
     public InGameClient(ServerFacade serverFac) throws ResponseException {
         serverFacade = serverFac;
+    }
+
+    @Override
+    public void notify(ServerMessage message) {
+        switch (message.getServerMessageType()) {
+            case NOTIFICATION -> displayNotification(((NotificationMessage) message).getMessage());
+            case ERROR -> displayError(((ErrorMessage) message).getErrorMessage());
+            case LOAD_GAME -> loadGame(((LoadGameMessage) message).getGame());
+        }
     }
 
     public InGameResult run(String authToken, Integer gameID, ChessGame.TeamColor playerColor) {
@@ -51,6 +68,18 @@ public class InGameClient {
             case "quit" -> new InGameResult("", ClientRepl.ClientState.EXIT);
             default -> new InGameResult(help(), ClientRepl.ClientState.IN_GAME);
         };
+    }
+
+    public void displayNotification(String notification) {
+        System.out.println(SET_TEXT_COLOR_RED + "Notif:" + notification);
+    }
+
+    public void displayError(String error) {
+        System.out.println(SET_TEXT_COLOR_RED + "Error:" + error);
+    }
+
+    public void loadGame(ChessGame game) {
+        new DrawnChessBoard(game).printBoard(playerColor);
     }
 
     public String help() {
