@@ -15,7 +15,7 @@ import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
-public class InGameClient implements ServerMessageObserver {
+public class InGameClient {
     private final ServerFacade serverFacade;
     private volatile String authToken;
     private volatile Integer gameID;
@@ -24,15 +24,6 @@ public class InGameClient implements ServerMessageObserver {
 
     public InGameClient(ServerFacade serverFac) throws ResponseException {
         serverFacade = serverFac;
-    }
-
-    @Override
-    public void notify(ServerMessage message) {
-        switch (message.getServerMessageType()) {
-            case NOTIFICATION -> displayNotification(((NotificationMessage) message).getMessage());
-            case ERROR -> displayError(((ErrorMessage) message).getErrorMessage());
-            case LOAD_GAME -> loadGame(((LoadGameMessage) message).getGame());
-        }
     }
 
     public InGameResult run(String authToken, Integer gameID, ChessGame.TeamColor playerColor) {
@@ -63,18 +54,15 @@ public class InGameClient implements ServerMessageObserver {
         String cmd = (tokens.length > 0) ? tokens[0] : "help";
         String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
         return switch (cmd) {
-            case "leave" -> new InGameResult("", ClientRepl.ClientState.POST_LOGIN);
+            case "leave" -> leave();
             case "quit" -> new InGameResult("", ClientRepl.ClientState.EXIT);
             default -> new InGameResult(help(), ClientRepl.ClientState.IN_GAME);
         };
     }
 
-    public void displayNotification(String notification) {
-        System.out.println(SET_TEXT_COLOR_RED + "Notif:" + notification);
-    }
-
-    public void displayError(String error) {
-        System.out.println(SET_TEXT_COLOR_RED + "Error:" + error);
+    public InGameResult leave() {
+        serverFacade.wsLeave(authToken, gameID);
+        return new InGameResult("", ClientRepl.ClientState.POST_LOGIN);
     }
 
     public void loadGame(ChessGame game) {

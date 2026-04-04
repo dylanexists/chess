@@ -1,25 +1,22 @@
 package client.facade;
 
-import com.google.gson.Gson;
+import client.websocket.ServerMessageObserver;
+import client.websocket.WebSocketCommunicator;
 import facade.ResponseException;
 import request.*;
 import result.*;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 
 public class ServerFacade {
 
-    private final HttpClient client = HttpClient.newHttpClient();
     private final String serverUrl;
-
     private final HttpCommunicator http;
+    private final WebSocketCommunicator ws;
 
-    public ServerFacade(String url) {
+    public ServerFacade(String url, ServerMessageObserver serverMessageObserver) {
         serverUrl = url;
         http = new HttpCommunicator(serverUrl);
+        ws = new WebSocketCommunicator(serverUrl, serverMessageObserver);
     }
 
     public RegisterResult register(RegisterRequest request) throws ResponseException {
@@ -48,6 +45,10 @@ public class ServerFacade {
 
     public ClearResult clear(ClearRequest request) {
         return http.clear(request);
+    }
+
+    public void wsLeave(String authToken, Integer gameID) {
+        ws.leaveGame(authToken, gameID);
     }
 
 }

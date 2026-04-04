@@ -4,7 +4,7 @@ public class NotificationMessage extends ServerMessage{
     private final String notificationMessage;
 
     public NotificationMessage(String notificationMessage){
-        super(ServerMessageType.ERROR);
+        super(ServerMessageType.NOTIFICATION);
         this.notificationMessage = notificationMessage;
     }
 

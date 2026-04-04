@@ -1,27 +1,24 @@
 package server.websocket;
 
-import chess.ChessMove;
 import com.google.gson.Gson;
 import dataaccess.AuthDao;
 import dataaccess.DataAccessException;
-import dataaccess.NotFoundException;
-import dataaccess.UserDao;
 import facade.ResponseException;
 import io.javalin.websocket.*;
 import model.AuthData;
-import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.websocket.api.Session;
 import org.jetbrains.annotations.NotNull;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
+import websocket.messages.NotificationMessage;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
     private final ConnectionManager connections = new ConnectionManager();
     private final Gson gson= new Gson();
     private final AuthDao authDao;
 
-    public WebSocketHandler(AuthDao userDao) {
-        this.authDao = userDao;
+    public WebSocketHandler(AuthDao authDao) {
+        this.authDao = authDao;
     }
 
     @Override
@@ -70,7 +67,11 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void leave(Session session, String username, UserGameCommand command) {
-
+        int gameID = command.getGameID();
+        connections.remove(gameID, session);
+        String message = username + " has left the game";
+        var notification = new NotificationMessage(message);
+        connections.broadcastInGame(gameID, session, notification);
     }
 
     private void resign(Session session, String username, UserGameCommand command) {
