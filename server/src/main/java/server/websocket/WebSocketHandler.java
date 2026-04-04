@@ -2,16 +2,13 @@ package server.websocket;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
-import dataaccess.AuthDao;
-import dataaccess.DataAccessException;
-import dataaccess.GameDao;
+import dataaccess.*;
 import facade.ResponseException;
 import io.javalin.websocket.*;
 import model.AuthData;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.jetbrains.annotations.NotNull;
-import server.Server;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
@@ -19,6 +16,7 @@ import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
+import javax.xml.crypto.Data;
 import java.io.IOException;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
@@ -47,16 +45,19 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             UserGameCommand command = serialize(wsMessageContext.message(), UserGameCommand.class);
             gameID = command.getGameID();
             String username = getUsername(command.getAuthToken());
+            ChessGame game = gameDao.getGame(gameID).game();
             saveSession(gameID, session);
 
             switch (command.getCommandType()) {
-                case CONNECT -> connect(session, username, command);
+                case CONNECT -> connect(session, username, game, command);
                 case MAKE_MOVE -> makeMove(session, username, serialize(wsMessageContext.message(), MakeMoveCommand.class));
                 case LEAVE -> leave(session, username, command);
                 case RESIGN -> resign(session, username, command);
             }
+        } catch (DataAccessException ex) {
+            sendLoadGameOrErrorMessage(session, new ErrorMessage("User or Game not found"));
         } catch (Exception ex) {
-            ex.printStackTrace();
+            sendLoadGameOrErrorMessage(session, new ErrorMessage("Error: undefined"));
         }
     }
 
@@ -69,24 +70,23 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         return gson.fromJson(json, givenClass);
     }
 
-    private void connect(Session session, String username, UserGameCommand command) {
+    private void connect(Session session, String username, ChessGame game, UserGameCommand command) {
         int gameID = command.getGameID();
         connections.add(gameID, session);
-        var gameMessage = getLoadGameOrError(gameID);
+        LoadGameMessage gameMessage = new LoadGameMessage(game);
         sendLoadGameOrErrorMessage(session, gameMessage);
-        if (gameMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
-            String message = username + " has joined the game.";
-            var notification = new NotificationMessage(message);
-            connections.broadcastNotification(gameID, session, notification);
-        }
+        String message = username + " has joined the game.";
+        var notification = new NotificationMessage(message);
+        connections.broadcastNotification(gameID, session, notification);
     }
 
     private void makeMove(Session session, String username, MakeMoveCommand command) {
 
     }
 
-    private void leave(Session session, String username, UserGameCommand command) {
+    private void leave(Session session, String username, UserGameCommand command) throws DataAccessException{
         int gameID = command.getGameID();
+        removeUserFromGame(gameID, username);
         connections.remove(gameID, session);
         String message = username + " has left the game";
         var notification = new NotificationMessage(message);
@@ -101,21 +101,30 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         connections.add(gameID, session);
     }
 
-    private String getUsername(String authToken) {
-        try {
-            AuthData auth = authDao.getAuth(authToken);
-            return auth.username();
-        } catch (DataAccessException ex) {
-            throw new ResponseException(ex.getMessage(), ex);
-        }
+    private String getUsername(String authToken) throws NotFoundException, QueryException {
+        AuthData auth = authDao.getAuth(authToken);
+        return auth.username();
     }
 
-    private ServerMessage getLoadGameOrError(int gameID) {
-        try {
-            GameData game = gameDao.getGame(gameID);
-            return new LoadGameMessage(game.game());
-        } catch (DataAccessException ex) {
-            return new ErrorMessage("Error: no game with that ID");
+    private ChessGame getGame(int gameID) throws NotFoundException, QueryException {
+        GameData game = gameDao.getGame(gameID);
+        return game.game();
+    }
+
+    private void removeUserFromGame(int gameID, String username) throws DataAccessException {
+        GameData gameData = gameDao.getGame(gameID);
+        if (username.equals(gameData.whiteUsername())){
+            gameDao.updateGame(new GameData(gameData.gameID(),
+                                null,
+                                gameData.blackUsername(),
+                                gameData.gameName(),
+                                gameData.game()));
+        } else if (username.equals(gameData.blackUsername())) {
+            gameDao.updateGame(new GameData(gameData.gameID(),
+                    gameData.whiteUsername(),
+                    null,
+                    gameData.gameName(),
+                    gameData.game()));
         }
     }
 
