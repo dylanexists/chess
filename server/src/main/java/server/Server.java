@@ -5,6 +5,7 @@ import dataaccess.*;
 import handler.*;
 import io.javalin.*;
 import result.*;
+import server.websocket.WebSocketHandler;
 import service.GameService;
 import service.UserService;
 
@@ -25,6 +26,7 @@ public class Server {
         var gameDao = new SQLGameDao(gson);
         var userService = new UserService(userDao, authDao);
         var gameService = new GameService(gameDao, authDao);
+        var webSocketHandler = new WebSocketHandler(authDao);
         var registerHandler = new RegisterHandler(gson, userService);
         var loginHandler = new LoginHandler(gson, userService);
         var logoutHandler = new LogoutHandler(gson, userService);
@@ -97,6 +99,11 @@ public class Server {
                     ctx.status(identifyErrorNum(result.message()));
                     ctx.contentType("application/json");
                     ctx.result(resultJson);
+                })
+                .ws("/ws", ws -> {
+                    ws.onConnect(webSocketHandler);
+                    ws.onMessage(webSocketHandler);
+                    ws.onClose(webSocketHandler);
                 })
                 ;
     }
