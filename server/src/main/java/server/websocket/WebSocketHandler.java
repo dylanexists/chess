@@ -4,13 +4,17 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.AuthDao;
 import dataaccess.DataAccessException;
+import dataaccess.GameDao;
 import facade.ResponseException;
 import io.javalin.websocket.*;
 import model.AuthData;
+import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.jetbrains.annotations.NotNull;
+import server.Server;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
@@ -20,10 +24,12 @@ import java.io.IOException;
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
     private final ConnectionManager connections = new ConnectionManager();
     private final Gson gson= new Gson();
+    private final GameDao gameDao;
     private final AuthDao authDao;
 
-    public WebSocketHandler(AuthDao authDao) {
+    public WebSocketHandler(GameDao gameDao, AuthDao authDao) {
         this.authDao = authDao;
+        this.gameDao = gameDao;
     }
 
     @Override
@@ -66,13 +72,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void connect(Session session, String username, UserGameCommand command) {
         int gameID = command.getGameID();
         connections.add(gameID, session);
-        String message = username + " has joined the game.";
-        var notification = new NotificationMessage(message);
-        connections.broadcastNotification(gameID, session, notification);
-        try {
-            session.getRemote().sendString(gson.toJson(new LoadGameMessage(new ChessGame())));
-        } catch (IOException e) {
-            return;
+        var gameMessage = getLoadGameOrError(gameID);
+        sendLoadGameOrErrorMessage(session, gameMessage);
+        if (gameMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
+            String message = username + " has joined the game.";
+            var notification = new NotificationMessage(message);
+            connections.broadcastNotification(gameID, session, notification);
         }
     }
 
@@ -86,8 +91,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         String message = username + " has left the game";
         var notification = new NotificationMessage(message);
         connections.broadcastNotification(gameID, session, notification);
-        ChessGame game = new ChessGame(); // TODO replace
-        sendLoadGameMessage(session, new LoadGameMessage(game));
     }
 
     private void resign(Session session, String username, UserGameCommand command) {
@@ -107,9 +110,18 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    public void sendLoadGameMessage(Session session, LoadGameMessage loadGameMessage) {
+    private ServerMessage getLoadGameOrError(int gameID) {
         try {
-            session.getRemote().sendString(gson.toJson(loadGameMessage));
+            GameData game = gameDao.getGame(gameID);
+            return new LoadGameMessage(game.game());
+        } catch (DataAccessException ex) {
+            return new ErrorMessage("Error: no game with that ID");
+        }
+    }
+
+    public void sendLoadGameOrErrorMessage(Session session, ServerMessage loadGameOrErrorMessage) {
+        try {
+            session.getRemote().sendString(gson.toJson(loadGameOrErrorMessage));
         } catch (IOException e) {
             throw new ResponseException("invalid session");
         }

@@ -26,7 +26,7 @@ public class Server {
         var gameDao = new SQLGameDao(gson);
         var userService = new UserService(userDao, authDao);
         var gameService = new GameService(gameDao, authDao);
-        var webSocketHandler = new WebSocketHandler(authDao);
+        var webSocketHandler = new WebSocketHandler(gameDao, authDao);
         var registerHandler = new RegisterHandler(gson, userService);
         var loginHandler = new LoginHandler(gson, userService);
         var logoutHandler = new LogoutHandler(gson, userService);
