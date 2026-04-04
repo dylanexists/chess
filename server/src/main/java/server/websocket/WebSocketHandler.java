@@ -1,5 +1,6 @@
 package server.websocket;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.AuthDao;
 import dataaccess.DataAccessException;
@@ -10,7 +11,11 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.jetbrains.annotations.NotNull;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
+import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
+
+import java.io.IOException;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
     private final ConnectionManager connections = new ConnectionManager();
@@ -59,7 +64,16 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void connect(Session session, String username, UserGameCommand command) {
-
+        int gameID = command.getGameID();
+        connections.add(gameID, session);
+        String message = username + " has joined the game.";
+        var notification = new NotificationMessage(message);
+        connections.broadcastNotification(gameID, session, notification);
+        try {
+            session.getRemote().sendString(gson.toJson(new LoadGameMessage(new ChessGame())));
+        } catch (IOException e) {
+            return;
+        }
     }
 
     private void makeMove(Session session, String username, MakeMoveCommand command) {
@@ -71,7 +85,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         connections.remove(gameID, session);
         String message = username + " has left the game";
         var notification = new NotificationMessage(message);
-        connections.broadcastInGame(gameID, session, notification);
+        connections.broadcastNotification(gameID, session, notification);
+        ChessGame game = new ChessGame(); // TODO replace
+        sendLoadGameMessage(session, new LoadGameMessage(game));
     }
 
     private void resign(Session session, String username, UserGameCommand command) {
@@ -88,6 +104,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             return auth.username();
         } catch (DataAccessException ex) {
             throw new ResponseException(ex.getMessage(), ex);
+        }
+    }
+
+    public void sendLoadGameMessage(Session session, LoadGameMessage loadGameMessage) {
+        try {
+            session.getRemote().sendString(gson.toJson(loadGameMessage));
+        } catch (IOException e) {
+            throw new ResponseException("invalid session");
         }
     }
 }

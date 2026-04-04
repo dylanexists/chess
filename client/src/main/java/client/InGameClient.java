@@ -61,7 +61,12 @@ public class InGameClient {
     }
 
     public InGameResult leave() {
-        serverFacade.wsLeave(authToken, gameID);
+        serverFacade.wsLeaveGame(authToken, gameID);
+        return new InGameResult("", ClientRepl.ClientState.POST_LOGIN);
+    }
+
+    public InGameResult connect() {
+        serverFacade.wsConnectGame(authToken, gameID);
         return new InGameResult("", ClientRepl.ClientState.POST_LOGIN);
     }
 

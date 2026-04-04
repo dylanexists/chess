@@ -47,8 +47,12 @@ public class ServerFacade {
         return http.clear(request);
     }
 
-    public void wsLeave(String authToken, Integer gameID) {
+    public void wsLeaveGame(String authToken, Integer gameID) {
         ws.leaveGame(authToken, gameID);
+    }
+
+    public void wsConnectGame(String authToken, Integer gameID) {
+        ws.connectGame(authToken, gameID);
     }
 
 }

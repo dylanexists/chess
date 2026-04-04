@@ -1,7 +1,9 @@
 package server.websocket;
 
+import com.google.gson.Gson;
 import org.eclipse.jetty.websocket.api.Session;
 import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.util.Set;
@@ -23,10 +25,10 @@ public class ConnectionManager {
         });
     }
 
-    public void broadcastInGame(int gameID, Session rootSession, NotificationMessage notification) {
+    public void broadcastNotification(int gameID, Session rootSession, NotificationMessage notification) {
         Set<Session> sessions = connections.get(gameID);
         if (sessions == null) {return;}
-        String message = notification.toString();
+        String message = new Gson().toJson(notification);
         for (Session s : sessions) {
             if (s.equals(rootSession)) {
                 continue; //excludes rootSession
