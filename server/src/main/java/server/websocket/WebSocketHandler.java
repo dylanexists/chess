@@ -31,13 +31,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
-        System.out.println("WS connected");
         ctx.enableAutomaticPings();
     }
 
     @Override
-    public void handleMessage(@NotNull WsMessageContext wsMessageContext) throws Exception {
-        int gameID = -1;
+    public void handleMessage(@NotNull WsMessageContext wsMessageContext) {
+        int gameID;
         Session session = wsMessageContext.session;
 
         try {
@@ -61,8 +60,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     @Override
-    public void handleClose(WsCloseContext ctx) {
-        System.out.println("WS closed");
+    public void handleClose(@NotNull WsCloseContext ctx) { //IntelliJ suggests doing NotNull
     }
 
     private <T extends UserGameCommand> T serialize(String json, Class<T> givenClass) {
