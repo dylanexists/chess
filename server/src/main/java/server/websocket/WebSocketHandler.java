@@ -78,20 +78,60 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         connections.broadcastNotification(gameID, session, notification);
     }
 
-    private void makeMove(Session session, String username, MakeMoveCommand command) throws NotFoundException, QueryException {
+    private void makeMove(Session session, String username, MakeMoveCommand command) throws DataAccessException {
         int gameID = command.getGameID();
         ChessMove move = command.getMove();
         ChessGame game = getGame(gameID);
-        ChessGame updatedGame = chessMoveLogic(move, game);
-        connections.broadcastLoadGame(gameID, new LoadGameMessage(updatedGame));
-        String promotionPiece = (move.getPromotionPiece() != null ? move.getPromotionPiece().name() : "");
-        String message = username + " moved their " + promotionPiece +
-                        " from " + prettyPrintPosition(move.getStartPosition()) +
-                        " to " + prettyPrintPosition(move.getEndPosition());
-        connections.broadcastNotification(gameID, session, new NotificationMessage(message));
+        GameData gameData = gameDao.getGame(gameID);
+        ErrorMessage errorMessage = validateMove(username, move, game, gameData);
+        if (errorMessage == null) {
+            ChessGame updatedGame = chessMoveLogic(move, game, gameData);
+            connections.broadcastLoadGame(gameID, new LoadGameMessage(updatedGame));
+            String promotionPiece = (move.getPromotionPiece() != null ? move.getPromotionPiece().name() : "");
+            String message = username + " moved their " + promotionPiece +
+                    " from " + prettyPrintPosition(move.getStartPosition()) +
+                    " to " + prettyPrintPosition(move.getEndPosition());
+            var notification = new NotificationMessage(message);
+            connections.broadcastNotification(gameID, session, notification);
+            ChessGame.TeamColor currentColor = updatedGame.getTeamTurn();
+            if (updatedGame.isInCheckmate(currentColor) || updatedGame.isInStalemate(currentColor)) { //if game is over
+                String stringColor = currentColor.name();
+                var gameOverNotification = new NotificationMessage(stringColor + "has lost! Game over!");
+                sendLoadGameOrErrorMessage(session, gameOverNotification);
+                connections.broadcastNotification(gameID, session, gameOverNotification);
+            }
+        } else {sendLoadGameOrErrorMessage(session, errorMessage);}
     }
 
-    private ChessGame chessMoveLogic(ChessMove move, ChessGame game) {
+    private ErrorMessage validateMove(String username, ChessMove move, ChessGame game, GameData gData) {
+        String whiteUser = gData.whiteUsername();
+        String blackUser = gData.blackUsername();
+        ChessGame.TeamColor white = ChessGame.TeamColor.WHITE;
+        ChessGame.TeamColor black = ChessGame.TeamColor.BLACK;
+        if (!username.equals(whiteUser) && !username.equals(blackUser)) {
+            return new ErrorMessage("You are an observer. You cannot play!");
+        } else if ((game.getTeamTurn() == white && (game.isInCheckmate(white) || game.isInStalemate(white))) ||
+                (game.getTeamTurn() == black && (game.isInCheckmate(black) || game.isInStalemate(black)))) {
+            return new ErrorMessage("The game has already ended! Type 'leave' to exit.");
+        } else if ((username.equals(whiteUser) && game.getTeamTurn() != white) ||
+                (username.equals(blackUser) && game.getTeamTurn() != black)) {
+            return new ErrorMessage("It is not yet your turn! Wait for your opponent to play a move.");
+        }
+        ChessPosition startPos = move.getStartPosition();
+        ChessPiece movingPiece = game.getBoard().getPiece(new ChessPosition(startPos.getRow(), startPos.getColumn()));
+        if (movingPiece == null ||
+            (username.equals(whiteUser) && movingPiece.getTeamColor() != white) ||
+            (username.equals(blackUser) && movingPiece.getTeamColor() != black)) {
+                return new ErrorMessage("Invalid move. You can only move your team's pieces.");
+        }
+        if (!game.validMoves(startPos).contains(move)) {
+            return new ErrorMessage("Illegal move. Type 'highlight " +
+                    prettyPrintPosition(startPos) + "' to see that piece's legal moves");
+        }
+        return null;
+    }
+
+    private ChessGame chessMoveLogic(ChessMove move, ChessGame game, GameData gameData) throws DataAccessException{
         ChessPosition startPos = move.getStartPosition();
         ChessPosition endPos = move.getEndPosition();
         ChessBoard beforeBoard = game.getBoard();
@@ -103,6 +143,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         afterBoard.addPiece(endPos, movingPiece);
         afterBoard.addPiece(startPos, null);
         game.setBoard(afterBoard);
+        ChessGame.TeamColor color = game.getTeamTurn();
+        game.setTeamTurn(color == ChessGame.TeamColor.WHITE ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE);
+        gameDao.updateGame(new GameData(gameData.gameID(),
+                                gameData.whiteUsername(),
+                                gameData.blackUsername(),
+                                gameData.gameName(),
+                                game));
         return game;
     }
 
