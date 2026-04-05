@@ -15,6 +15,8 @@ public class ChessGame {
 
     private ChessBoard board;
     private TeamColor turn;
+    private boolean gameOver;
+    private TeamColor loserColor;
     //castling public variables
     private boolean whiteKingMoved = false;
     private boolean whiteCol1RookMoved = false;
@@ -30,6 +32,8 @@ public class ChessGame {
         board = new ChessBoard();
         board.resetBoard();
         turn = TeamColor.WHITE;
+        gameOver = false;
+        loserColor = null;
     }
 
     @Override
@@ -77,6 +81,18 @@ public class ChessGame {
         WHITE,
         BLACK
     }
+
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    public void setGameOver(boolean value) {gameOver = value;}
+
+    public TeamColor getLoser() {
+        return loserColor;
+    }
+
+    public void setLoser(TeamColor color) {loserColor = color;}
 
     /**
      * Gets a valid moves for a piece at the given location

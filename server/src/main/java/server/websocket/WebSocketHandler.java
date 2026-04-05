@@ -54,9 +54,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 case RESIGN -> resign(session, username, command);
             }
         } catch (DataAccessException ex) {
-            sendLoadGameOrErrorMessage(session, new ErrorMessage("User or Game not found"));
+            sendSessionOnlyMessage(session, new ErrorMessage("User or Game not found"));
         } catch (Exception ex) {
-            sendLoadGameOrErrorMessage(session, new ErrorMessage("Error: undefined"));
+            sendSessionOnlyMessage(session, new ErrorMessage("Error: undefined"));
         }
     }
 
@@ -72,7 +72,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void connect(Session session, String username, ChessGame game, UserGameCommand command) {
         int gameID = command.getGameID();
         connections.add(gameID, session);
-        sendLoadGameOrErrorMessage(session, new LoadGameMessage(game));
+        sendSessionOnlyMessage(session, new LoadGameMessage(game));
         String message = username + " has joined the game.";
         var notification = new NotificationMessage(message);
         connections.broadcastNotification(gameID, session, notification);
@@ -93,14 +93,26 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     " to " + prettyPrintPosition(move.getEndPosition());
             var notification = new NotificationMessage(message);
             connections.broadcastNotification(gameID, session, notification);
-            ChessGame.TeamColor currentColor = updatedGame.getTeamTurn();
-            if (updatedGame.isInCheckmate(currentColor) || updatedGame.isInStalemate(currentColor)) { //if game is over
-                String stringColor = currentColor.name();
-                var gameOverNotification = new NotificationMessage(stringColor + "has lost! Game over!");
-                sendLoadGameOrErrorMessage(session, gameOverNotification);
+            if (updatedGame.isGameOver()) { //if game is over
+                String stringColor = updatedGame.getLoser().name();
+                var gameOverNotification = new NotificationMessage(stringColor + " has lost! Game over!");
+                sendSessionOnlyMessage(session, gameOverNotification);
                 connections.broadcastNotification(gameID, session, gameOverNotification);
             }
-        } else {sendLoadGameOrErrorMessage(session, errorMessage);}
+        } else {sendSessionOnlyMessage(session, errorMessage);}
+    }
+
+    private void leave(Session session, String username, UserGameCommand command) throws DataAccessException{
+        int gameID = command.getGameID();
+        removeUserFromGame(gameID, username);
+        connections.remove(gameID, session);
+        String message = username + " has left the game";
+        var notification = new NotificationMessage(message);
+        connections.broadcastNotification(gameID, session, notification);
+    }
+
+    private void resign(Session session, String username, UserGameCommand command) {
+
     }
 
     private ErrorMessage validateMove(String username, ChessMove move, ChessGame game, GameData gData) {
@@ -144,7 +156,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         afterBoard.addPiece(startPos, null);
         game.setBoard(afterBoard);
         ChessGame.TeamColor color = game.getTeamTurn();
-        game.setTeamTurn(color == ChessGame.TeamColor.WHITE ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE);
+        ChessGame.TeamColor newColor = color == ChessGame.TeamColor.WHITE ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+        game.setTeamTurn(newColor);
+        if (game.isInCheckmate(newColor) || game.isInStalemate(newColor)) { //if game is over
+            game.setGameOver(true);
+            game.setLoser(newColor);
+        }
         gameDao.updateGame(new GameData(gameData.gameID(),
                                 gameData.whiteUsername(),
                                 gameData.blackUsername(),
@@ -170,19 +187,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             "g",
             "h"
     };
-
-    private void leave(Session session, String username, UserGameCommand command) throws DataAccessException{
-        int gameID = command.getGameID();
-        removeUserFromGame(gameID, username);
-        connections.remove(gameID, session);
-        String message = username + " has left the game";
-        var notification = new NotificationMessage(message);
-        connections.broadcastNotification(gameID, session, notification);
-    }
-
-    private void resign(Session session, String username, UserGameCommand command) {
-
-    }
 
     private void saveSession(Integer gameID, Session session) {
         connections.add(gameID, session);
@@ -215,7 +219,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    public void sendLoadGameOrErrorMessage(Session session, ServerMessage loadGameOrErrorMessage) {
+    public void sendSessionOnlyMessage(Session session, ServerMessage loadGameOrErrorMessage) {
         try {
             session.getRemote().sendString(gson.toJson(loadGameOrErrorMessage));
         } catch (IOException e) {
