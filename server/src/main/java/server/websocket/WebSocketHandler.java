@@ -111,8 +111,37 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         connections.broadcastNotification(gameID, session, notification);
     }
 
-    private void resign(Session session, String username, UserGameCommand command) {
+    private void resign(Session session, String username, UserGameCommand command) throws DataAccessException {
+        int gameID = command.getGameID();
+        ChessGame game = getGame(gameID);
+        GameData gameData = gameDao.getGame(gameID);
+        ErrorMessage errorMessage = validateResign(username, game, gameData);
+        if (errorMessage == null) {
+            game.setGameOver(true);
+            ChessGame.TeamColor loser = username.equals(gameData.whiteUsername()) ?
+                        ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+            game.setLoser(loser);
+            gameDao.updateGame(new GameData(gameData.gameID(),
+                    gameData.whiteUsername(),
+                    gameData.blackUsername(),
+                    gameData.gameName(),
+                    game));
+            String message = username + " has resigned. Game Over!";
+            var notification = new NotificationMessage(message);
+            sendSessionOnlyMessage(session, notification);
+            connections.broadcastNotification(gameID, session, notification);
+        } else {sendSessionOnlyMessage(session, errorMessage);}
+    }
 
+    private ErrorMessage validateResign(String username, ChessGame game, GameData gData) {
+        String whiteUser = gData.whiteUsername();
+        String blackUser = gData.blackUsername();
+        if (!username.equals(whiteUser) && !username.equals(blackUser)) {
+            return new ErrorMessage("You are an observer. You cannot resign!");
+        } else if (game.isGameOver()) {
+            return new ErrorMessage("The game has already ended! Type 'leave' to exit.");
+        }
+        return null;
     }
 
     private ErrorMessage validateMove(String username, ChessMove move, ChessGame game, GameData gData) {
@@ -122,8 +151,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         ChessGame.TeamColor black = ChessGame.TeamColor.BLACK;
         if (!username.equals(whiteUser) && !username.equals(blackUser)) {
             return new ErrorMessage("You are an observer. You cannot play!");
-        } else if ((game.getTeamTurn() == white && (game.isInCheckmate(white) || game.isInStalemate(white))) ||
-                (game.getTeamTurn() == black && (game.isInCheckmate(black) || game.isInStalemate(black)))) {
+        } else if (game.isGameOver()) {
             return new ErrorMessage("The game has already ended! Type 'leave' to exit.");
         } else if ((username.equals(whiteUser) && game.getTeamTurn() != white) ||
                 (username.equals(blackUser) && game.getTeamTurn() != black)) {
@@ -219,9 +247,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    public void sendSessionOnlyMessage(Session session, ServerMessage loadGameOrErrorMessage) {
+    public void sendSessionOnlyMessage(Session session, ServerMessage selfSendingMessage) {
         try {
-            session.getRemote().sendString(gson.toJson(loadGameOrErrorMessage));
+            session.getRemote().sendString(gson.toJson(selfSendingMessage));
         } catch (IOException e) {
             throw new ResponseException("invalid session");
         }
