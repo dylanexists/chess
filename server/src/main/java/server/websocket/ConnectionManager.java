@@ -2,6 +2,7 @@ package server.websocket;
 
 import com.google.gson.Gson;
 import org.eclipse.jetty.websocket.api.Session;
+import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
@@ -33,6 +34,19 @@ public class ConnectionManager {
             if (s.equals(rootSession)) {
                 continue; //excludes rootSession
             }
+            try {
+                if (s.isOpen()) {
+                    s.getRemote().sendString(message);
+                } //possibly remove session if not open??
+            } catch (IOException ex) {remove(gameID, s);} //remove non-existent (broken) session
+        }
+    }
+
+    public void broadcastLoadGame(int gameID, LoadGameMessage gameMessage) {
+        Set<Session> sessions = connections.get(gameID);
+        if (sessions == null) {return;}
+        String message = new Gson().toJson(gameMessage);
+        for (Session s : sessions) {
             try {
                 if (s.isOpen()) {
                     s.getRemote().sendString(message);

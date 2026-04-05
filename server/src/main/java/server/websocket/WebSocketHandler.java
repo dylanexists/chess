@@ -1,6 +1,6 @@
 package server.websocket;
 
-import chess.ChessGame;
+import chess.*;
 import com.google.gson.Gson;
 import dataaccess.*;
 import facade.ResponseException;
@@ -16,7 +16,6 @@ import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
-import javax.xml.crypto.Data;
 import java.io.IOException;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
@@ -45,7 +44,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             UserGameCommand command = serialize(wsMessageContext.message(), UserGameCommand.class);
             gameID = command.getGameID();
             String username = getUsername(command.getAuthToken());
-            ChessGame game = gameDao.getGame(gameID).game();
+            ChessGame game = getGame(gameID);
             saveSession(gameID, session);
 
             switch (command.getCommandType()) {
@@ -73,16 +72,57 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void connect(Session session, String username, ChessGame game, UserGameCommand command) {
         int gameID = command.getGameID();
         connections.add(gameID, session);
-        LoadGameMessage gameMessage = new LoadGameMessage(game);
-        sendLoadGameOrErrorMessage(session, gameMessage);
+        sendLoadGameOrErrorMessage(session, new LoadGameMessage(game));
         String message = username + " has joined the game.";
         var notification = new NotificationMessage(message);
         connections.broadcastNotification(gameID, session, notification);
     }
 
-    private void makeMove(Session session, String username, MakeMoveCommand command) {
-
+    private void makeMove(Session session, String username, MakeMoveCommand command) throws NotFoundException, QueryException {
+        int gameID = command.getGameID();
+        ChessMove move = command.getMove();
+        ChessGame game = getGame(gameID);
+        ChessGame updatedGame = chessMoveLogic(move, game);
+        connections.broadcastLoadGame(gameID, new LoadGameMessage(updatedGame));
+        String promotionPiece = (move.getPromotionPiece() != null ? move.getPromotionPiece().name() : "");
+        String message = username + " moved their " + promotionPiece +
+                        " from " + prettyPrintPosition(move.getStartPosition()) +
+                        " to " + prettyPrintPosition(move.getEndPosition());
+        connections.broadcastNotification(gameID, session, new NotificationMessage(message));
     }
+
+    private ChessGame chessMoveLogic(ChessMove move, ChessGame game) {
+        ChessPosition startPos = move.getStartPosition();
+        ChessPosition endPos = move.getEndPosition();
+        ChessBoard beforeBoard = game.getBoard();
+        ChessPiece movingPiece = beforeBoard.getPiece(startPos);
+        ChessBoard afterBoard = beforeBoard.clone();
+        if (move.getPromotionPiece() != null) {
+            movingPiece = new ChessPiece(movingPiece.getTeamColor(), move.getPromotionPiece());
+        }
+        afterBoard.addPiece(endPos, movingPiece);
+        afterBoard.addPiece(startPos, null);
+        game.setBoard(afterBoard);
+        return game;
+    }
+
+    private String prettyPrintPosition(ChessPosition position) {
+        int letterPos = position.getColumn();
+        String letter = columnLetters[letterPos - 1];
+        String number = String.valueOf(position.getRow());
+        return letter + number;
+    }
+
+    private final String [] columnLetters = { //back rank setup to use in for-loop
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h"
+    };
 
     private void leave(Session session, String username, UserGameCommand command) throws DataAccessException{
         int gameID = command.getGameID();
