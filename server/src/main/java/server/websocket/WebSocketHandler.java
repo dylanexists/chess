@@ -6,7 +6,6 @@ import dataaccess.*;
 import facade.ConsoleTextHandler;
 import facade.ResponseException;
 import io.javalin.websocket.*;
-import jakarta.websocket.OnClose;
 import model.AuthData;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
@@ -23,10 +22,10 @@ import java.util.Set;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
     private final ConnectionManager connectionMan = new ConnectionManager();
-    private final Gson gson= new Gson();
     private final ConsoleTextHandler consoleTextHandler = new ConsoleTextHandler();
     private final GameDao gameDao;
     private final AuthDao authDao;
+    private final Gson gson = new Gson();
 
     public WebSocketHandler(GameDao gameDao, AuthDao authDao) {
         this.authDao = authDao;

@@ -35,10 +35,8 @@ public class InGameClient {
         this.playerColor = playerColor;
         Scanner scanner = new Scanner(System.in);
         InGameResult result;
-        drawnChessBoard = new DrawnChessBoard(new ChessGame());
         connect(); //Websocket connection
         while (true) {
-            drawnChessBoard.printBoard(playerColor); //playerColor = null is spectator, printBoard() auto assigns view to white
             printPrompt();
             String line = scanner.nextLine();
             try {

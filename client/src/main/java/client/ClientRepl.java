@@ -3,8 +3,8 @@ package client;
 import chess.ChessGame;
 import client.facade.ServerFacade;
 import client.websocket.ServerMessageObserver;
+import com.google.gson.Gson;
 import facade.ResponseException;
-import ui.DrawnChessBoard;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
@@ -13,6 +13,7 @@ import websocket.messages.ServerMessage;
 import static ui.EscapeSequences.SET_TEXT_COLOR_RED;
 
 public class ClientRepl implements ServerMessageObserver {
+    private final Gson gson = new Gson();
     private final ServerFacade serverFac;
     private final PreLoginClient preLogin;
     private final PostLoginClient postLogin;
@@ -26,11 +27,12 @@ public class ClientRepl implements ServerMessageObserver {
     }
 
     @Override
-    public void notify(ServerMessage message) {
-        switch (message.getServerMessageType()) {
-            case NOTIFICATION -> displayNotification(((NotificationMessage) message).getMessage());
-            case ERROR -> displayError(((ErrorMessage) message).getErrorMessage());
-            case LOAD_GAME -> loadGame(((LoadGameMessage) message).getGame());
+    public void notify(String message) {
+        ServerMessage sMessage = gson.fromJson(message, ServerMessage.class);
+        switch (sMessage.getServerMessageType()) {
+            case NOTIFICATION -> displayNotification((gson.fromJson(message, NotificationMessage.class)).getMessage());
+            case ERROR -> displayError((gson.fromJson(message, ErrorMessage.class)).getErrorMessage());
+            case LOAD_GAME -> loadGame((gson.fromJson(message, LoadGameMessage.class)).getGame());
         }
     }
 
