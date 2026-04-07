@@ -128,7 +128,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         connectionMan.broadcastNotification(gameID, playerSession.session(), notification);
     }
 
-    private void makeMove(PlayerSession playerSession, String username, MakeMoveCommand command) throws DataAccessException {
+    private void makeMove(PlayerSession playerSession, String username, MakeMoveCommand command) throws DataAccessException, Exception{
         int gameID = command.getGameID();
         ChessMove move = command.getMove();
         ChessGame game = getGame(gameID);
@@ -226,24 +226,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         return null;
     }
 
-    private ChessGame chessMoveLogic(ChessMove move, ChessGame game, GameData gameData) throws DataAccessException{
-        ChessPosition startPos = move.getStartPosition();
-        ChessPosition endPos = move.getEndPosition();
-        ChessBoard beforeBoard = game.getBoard();
-        ChessPiece movingPiece = beforeBoard.getPiece(startPos);
-        ChessBoard afterBoard = beforeBoard.clone();
-        if (move.getPromotionPiece() != null) {
-            movingPiece = new ChessPiece(movingPiece.getTeamColor(), move.getPromotionPiece());
+    private ChessGame chessMoveLogic(ChessMove move, ChessGame game, GameData gameData) throws DataAccessException, Exception{
+        try {
+            game.makeMove(move);
+        } catch (InvalidMoveException ex) {
+            throw new Exception("chessMoveLogic");
         }
-        afterBoard.addPiece(endPos, movingPiece);
-        afterBoard.addPiece(startPos, null);
-        game.setBoard(afterBoard);
-        ChessGame.TeamColor color = game.getTeamTurn();
-        ChessGame.TeamColor newColor = color == ChessGame.TeamColor.WHITE ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
-        game.setTeamTurn(newColor);
-        if (game.isInCheckmate(newColor) || game.isInStalemate(newColor)) { //if game is over
+        if (game.isInCheckmate(game.getTeamTurn()) || game.isInStalemate(game.getTeamTurn())) { //if game is over
             game.setGameOver(true);
-            game.setLoser(newColor);
+            game.setLoser(game.getTeamTurn());
         }
         gameDao.updateGame(new GameData(gameData.gameID(),
                                 gameData.whiteUsername(),
