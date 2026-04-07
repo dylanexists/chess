@@ -56,7 +56,7 @@ public class ConsoleTextHandler {
 
     public String prettyPrintPosition(ChessPosition position) {
         int letterPos = position.getColumn();
-        String letter = columnLetters[letterPos - 1];
+        String letter = COLUMN_LETTERS[letterPos - 1];
         String number = String.valueOf(position.getRow());
         return letter + number;
     }
@@ -69,7 +69,7 @@ public class ConsoleTextHandler {
         return ch - 'a' + 1;
     }
 
-    private static final String [] columnLetters = { //letter array of chess-board columns
+    private static final String [] COLUMN_LETTERS = { //letter array of chess-board columns
             "a",
             "b",
             "c",
