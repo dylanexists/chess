@@ -1,5 +1,6 @@
 package client.facade;
 
+import chess.ChessMove;
 import client.websocket.ServerMessageObserver;
 import client.websocket.WebSocketCommunicator;
 import facade.ResponseException;
@@ -54,5 +55,7 @@ public class ServerFacade {
     public void wsConnectGame(String authToken, Integer gameID) {
         ws.connectGame(authToken, gameID);
     }
+
+    public void wsMakeMove(String authToken, Integer gameID, ChessMove move) {ws.makeMove(authToken, gameID, move);}
 
 }

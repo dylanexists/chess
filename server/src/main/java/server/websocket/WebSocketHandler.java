@@ -3,6 +3,7 @@ package server.websocket;
 import chess.*;
 import com.google.gson.Gson;
 import dataaccess.*;
+import facade.ConsoleTextHandler;
 import facade.ResponseException;
 import io.javalin.websocket.*;
 import model.AuthData;
@@ -21,6 +22,7 @@ import java.io.IOException;
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
     private final ConnectionManager connections = new ConnectionManager();
     private final Gson gson= new Gson();
+    private final ConsoleTextHandler consoleTextHandler = new ConsoleTextHandler();
     private final GameDao gameDao;
     private final AuthDao authDao;
 
@@ -87,8 +89,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             connections.broadcastLoadGame(gameID, new LoadGameMessage(updatedGame));
             String promotionPiece = (move.getPromotionPiece() != null ? move.getPromotionPiece().name() : "");
             String message = username + " moved their " + promotionPiece +
-                    " from " + prettyPrintPosition(move.getStartPosition()) +
-                    " to " + prettyPrintPosition(move.getEndPosition());
+                    " from " + consoleTextHandler.prettyPrintPosition(move.getStartPosition()) +
+                    " to " + consoleTextHandler.prettyPrintPosition(move.getEndPosition());
             var notification = new NotificationMessage(message);
             connections.broadcastNotification(gameID, session, notification);
             if (updatedGame.isGameOver()) { //if game is over
@@ -164,7 +166,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
         if (!game.validMoves(startPos).contains(move)) {
             return new ErrorMessage("Illegal move. Type 'highlight " +
-                    prettyPrintPosition(startPos) + "' to see that piece's legal moves");
+                    consoleTextHandler.prettyPrintPosition(startPos) + "' to see that piece's legal moves");
         }
         return null;
     }
@@ -195,24 +197,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                                 game));
         return game;
     }
-
-    private String prettyPrintPosition(ChessPosition position) {
-        int letterPos = position.getColumn();
-        String letter = columnLetters[letterPos - 1];
-        String number = String.valueOf(position.getRow());
-        return letter + number;
-    }
-
-    private final String [] columnLetters = { //back rank setup to use in for-loop
-            "a",
-            "b",
-            "c",
-            "d",
-            "e",
-            "f",
-            "g",
-            "h"
-    };
 
     private void saveSession(Integer gameID, Session session) {
         connections.add(gameID, session);
