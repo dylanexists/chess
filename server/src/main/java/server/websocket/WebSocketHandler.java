@@ -55,6 +55,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 case MAKE_MOVE -> makeMove(playerSession, username, serialize(wsMessageContext.message(), MakeMoveCommand.class));
                 case LEAVE -> leave(playerSession, username, command.getGameID());
                 case RESIGN -> resign(playerSession, username, command);
+                case REDRAW -> redraw(playerSession, game);
             }
         } catch (DataAccessException ex) {
             sendSessionOnlyMessage(session, new ErrorMessage("User or Game not found"));
@@ -103,6 +104,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private <T extends UserGameCommand> T serialize(String json, Class<T> givenClass) {
         return gson.fromJson(json, givenClass);
+    }
+
+    private void redraw(PlayerSession playerSession, ChessGame game) {
+        sendSessionOnlyMessage(playerSession.session(), new LoadGameMessage(game));
     }
 
     private void connect(PlayerSession playerSession, String username, ChessGame game, UserGameCommand command) {

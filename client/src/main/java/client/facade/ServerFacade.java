@@ -60,4 +60,6 @@ public class ServerFacade {
 
     public void wsResign(String authToken, Integer gameID) {ws.resign(authToken, gameID);}
 
+    public void wsRedraw(String authToken, Integer gameID) {ws.redraw(authToken, gameID);}
+
 }

@@ -3,14 +3,9 @@ package client;
 import chess.ChessGame;
 import chess.ChessMove;
 import client.facade.ServerFacade;
-import client.websocket.ServerMessageObserver;
 import facade.ConsoleTextHandler;
 import facade.ResponseException;
 import ui.DrawnChessBoard;
-import websocket.messages.ErrorMessage;
-import websocket.messages.LoadGameMessage;
-import websocket.messages.NotificationMessage;
-import websocket.messages.ServerMessage;
 
 import java.util.Arrays;
 import java.util.Scanner;
@@ -54,12 +49,18 @@ public class InGameClient {
         String cmd = (tokens.length > 0) ? tokens[0] : "help";
         String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
         return switch (cmd) {
+            case "redraw" -> redraw();
             case "move" -> move(params);
             case "resign" -> resign(scanner);
             case "leave" -> leave();
             case "quit" -> new InGameResult("", ClientRepl.ClientState.EXIT);
             default -> new InGameResult(help(), ClientRepl.ClientState.IN_GAME);
         };
+    }
+
+    public InGameResult redraw() {
+        serverFacade.wsRedraw(authToken, gameID);
+        return new InGameResult("", ClientRepl.ClientState.IN_GAME);
     }
 
     public InGameResult move(String ... params) {
