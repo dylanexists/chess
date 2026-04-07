@@ -11,45 +11,45 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionManager {
-    public final ConcurrentHashMap<Integer, Set<Session>> connections = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<Integer, Set<PlayerSession>> connections = new ConcurrentHashMap<>();
 
-    public void add(int gameID, Session session) {
-        Set<Session> sessionSet =
+    public void add(int gameID, PlayerSession playerSession) {
+        Set<PlayerSession> sessionSet =
                 connections.computeIfAbsent(gameID, a -> ConcurrentHashMap.newKeySet());
-        sessionSet.add(session);
+        sessionSet.add(playerSession);
     }
 
-    public void remove(int gameID, Session session) {
+    public void remove(int gameID, PlayerSession playerSession) {
         connections.computeIfPresent(gameID, (id, sessions) -> {
-            sessions.remove(session);
+            sessions.remove(playerSession);
             return sessions.isEmpty() ? null : sessions;
         });
     }
 
     public void broadcastNotification(int gameID, Session rootSession, NotificationMessage notification) {
-        Set<Session> sessions = connections.get(gameID);
+        Set<PlayerSession> sessions = connections.get(gameID);
         if (sessions == null) {return;}
         String message = new Gson().toJson(notification);
-        for (Session s : sessions) {
-            if (s.equals(rootSession)) {
+        for (PlayerSession s : sessions) {
+            if (s.session().equals(rootSession)) {
                 continue; //excludes rootSession
             }
             try {
-                if (s.isOpen()) {
-                    s.getRemote().sendString(message);
+                if (s.session().isOpen()) {
+                    s.session().getRemote().sendString(message);
                 } //possibly remove session if not open??
             } catch (IOException ex) {remove(gameID, s);} //remove non-existent (broken) session
         }
     }
 
     public void broadcastLoadGame(int gameID, LoadGameMessage gameMessage) {
-        Set<Session> sessions = connections.get(gameID);
+        Set<PlayerSession> sessions = connections.get(gameID);
         if (sessions == null) {return;}
         String message = new Gson().toJson(gameMessage);
-        for (Session s : sessions) {
+        for (PlayerSession s : sessions) {
             try {
-                if (s.isOpen()) {
-                    s.getRemote().sendString(message);
+                if (s.session().isOpen()) {
+                    s.session().getRemote().sendString(message);
                 } //possibly remove session if not open??
             } catch (IOException ex) {remove(gameID, s);} //remove non-existent (broken) session
         }

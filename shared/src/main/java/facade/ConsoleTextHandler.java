@@ -19,9 +19,9 @@ public class ConsoleTextHandler {
         }
 
         char startLetter = startPosText.toLowerCase().charAt(0);
-        char startNumber = startPosText.toLowerCase().charAt(1);
+        int startNumber = Character.getNumericValue(startPosText.charAt(1));
         char endLetter = endPosText.toLowerCase().charAt(0);
-        char endNumber = endPosText.toLowerCase().charAt(1);
+        int endNumber = Character.getNumericValue(endPosText.charAt(1));
         if (startLetter < 'a' || startLetter > 'h' || startNumber < 1 || startNumber > 8) {
             throw new ResponseException(startPosText + " is not a valid chess square.", chessPositionError());
         } else if (endLetter < 'a' || endLetter > 'h' || endNumber < 1 || endNumber > 8) {
