@@ -1,12 +1,11 @@
 package ui;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
+import facade.ConsoleTextHandler;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 
 import static ui.EscapeSequences.*;
 import static ui.EscapeSequences.BLACK_KING;
@@ -14,10 +13,15 @@ import static ui.EscapeSequences.BLACK_ROOK;
 
 public class DrawnChessBoard {
 
+    private ConsoleTextHandler consoleTextHandler = new ConsoleTextHandler();
     private static ChessGame chessGame;
     private static String currentBGColor; //top left square is always light
+    boolean lightSquare;
     private volatile boolean reversed;
 
+    public static final String MY_DARK_HIGHLIGHT = SET_BG_COLOR_RED;
+    public static final String MY_LIGHT_HIGHLIGHT = SET_BG_COLOR_LIGHT_RED;
+    public static final String MY_PIECE_HIGHLIGHT = SET_BG_COLOR_YELLOW;
     public static final String MY_DARK_GREEN = SET_BG_COLOR_DARK_GREEN;
     public static final String MY_LIGHT_GREEN = SET_BG_COLOR_GREEN;
     private static final int BOARD_SIZE_IN_SQUARES = 8;
@@ -30,21 +34,23 @@ public class DrawnChessBoard {
         chessGame = game;
     }
 
-    public void printBoard(ChessGame.TeamColor color) {
+    public void printBoard(ChessGame.TeamColor color, ChessPosition highlightedPiece,
+                                                Collection<ChessPosition> validSquares) {
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
         out.print(ERASE_SCREEN);
-        currentBGColor = MY_LIGHT_GREEN; //top left square always light color
+        lightSquare = false;
+        currentBGColor = MY_DARK_GREEN; //top left square always light color
         reversed = color == ChessGame.TeamColor.BLACK; //reverse is true if it's black player's view
 
         drawNewline(out);
         drawHeader(out);
-        drawChess(out);
+        drawChess(out, highlightedPiece, validSquares);
         drawHeader(out);
 
         out.print(RESET_TEXT_COLOR + RESET_BG_COLOR);
     }
 
-    private void drawChess(PrintStream out) {
+    private void drawChess(PrintStream out, ChessPosition highlightedPiece, Collection<ChessPosition> validSquares) {
         int topNumberRightLetter = reversed ? 1 : 8; //the top left number (ex. 8) is the bottom right letter (ex. h)
         int bottomNumberLeftLetter = reversed ? 8 : 1; //Ex. top left will be 1, h (8) or 8, a (1)
         int step = reversed ? 1 : -1; //iterates r and c to the correct number, regardless of board orientation
@@ -52,21 +58,26 @@ public class DrawnChessBoard {
             out.print(SET_BG_COLOR_BLUE);
             drawBoarderSquare(out, " " + r + " ");
             for (int c = bottomNumberLeftLetter; c != topNumberRightLetter - step; c -= step){
+                boolean highlight = false;
+                boolean pieceHighlight = false;
                 ChessBoard board = chessGame.getBoard();
-                ChessPiece piece = board.getPiece(new ChessPosition(r, c));
+                ChessPosition currentSquare = new ChessPosition(r, c);
+                ChessPiece piece = board.getPiece(currentSquare);
+                if (currentSquare.equals(highlightedPiece)) {pieceHighlight = true;}
+                else if (validSquares != null && validSquares.contains(currentSquare)) {highlight = true;}
                 if (piece == null) {
-                    drawSquare(out, EMPTY, null);
+                    drawSquare(out, EMPTY, null, highlight, pieceHighlight);
                 } else {
                     ChessGame.TeamColor pieceColor = piece.getTeamColor();
                     ChessPiece.PieceType pieceType = piece.getPieceType();
                     String pieceString = pieceStringConvertor(pieceType);
-                    drawSquare(out, pieceString, pieceColor);
+                    drawSquare(out, pieceString, pieceColor, highlight, pieceHighlight);
                 }
             }
             out.print(SET_BG_COLOR_BLUE);
             drawBoarderSquare(out, " " + r + " " + TEENY);
             drawNewline(out);
-            alternateSquareColor();
+            alternateSquareColor(false, false);
         }
     }
 
@@ -86,15 +97,23 @@ public class DrawnChessBoard {
         out.print(number);
     }
 
-    private void drawSquare(PrintStream out, String piece, ChessGame.TeamColor color) {
+    private void drawSquare(PrintStream out, String piece, ChessGame.TeamColor color,
+                                                boolean highlight, boolean pieceHighlight) {
+        alternateSquareColor(highlight, pieceHighlight);
         out.print(currentBGColor);
         out.print(color == ChessGame.TeamColor.WHITE ? SET_TEXT_COLOR_WHITE : SET_TEXT_COLOR_BLACK);
         out.print(piece);
-        alternateSquareColor();
     }
 
-    private void alternateSquareColor() {
-        currentBGColor = currentBGColor.equals(MY_LIGHT_GREEN) ? MY_DARK_GREEN : MY_LIGHT_GREEN;
+    private void alternateSquareColor(boolean highlight, boolean pieceHighlight) {
+        if (pieceHighlight) {
+            currentBGColor = MY_PIECE_HIGHLIGHT;
+        } else if (highlight) {
+            currentBGColor = lightSquare ? MY_DARK_HIGHLIGHT : MY_LIGHT_HIGHLIGHT;
+        } else {
+            currentBGColor = lightSquare ? MY_DARK_GREEN : MY_LIGHT_GREEN;
+        }
+        lightSquare = !lightSquare;
     }
 
     public void drawHeader(PrintStream out) {

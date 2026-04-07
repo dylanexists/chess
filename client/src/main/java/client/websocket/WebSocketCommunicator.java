@@ -1,11 +1,13 @@
 package client.websocket;
 
 import chess.ChessMove;
+import chess.ChessPosition;
 import com.google.gson.Gson;
 import facade.ResponseException;
 
 import jakarta.websocket.*;
 import org.glassfish.grizzly.http.server.Response;
+import websocket.commands.HighlightCommand;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.NotificationMessage;
@@ -80,6 +82,15 @@ public class WebSocketCommunicator extends Endpoint {
     public void redraw(String authToken, Integer gameID) throws ResponseException {
         try {
             var command = new UserGameCommand(UserGameCommand.CommandType.REDRAW, authToken, gameID);
+            this.session.getBasicRemote().sendText(gson.toJson(command));
+        } catch (IOException ex) {
+            throw new ResponseException(ex.getMessage(), ex);
+        }
+    }
+
+    public void highlight(String authToken, Integer gameID, ChessPosition position) throws ResponseException {
+        try {
+            var command = new HighlightCommand(authToken, gameID, position);
             this.session.getBasicRemote().sendText(gson.toJson(command));
         } catch (IOException ex) {
             throw new ResponseException(ex.getMessage(), ex);

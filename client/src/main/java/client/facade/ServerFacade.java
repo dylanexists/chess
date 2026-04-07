@@ -1,6 +1,7 @@
 package client.facade;
 
 import chess.ChessMove;
+import chess.ChessPosition;
 import client.websocket.ServerMessageObserver;
 import client.websocket.WebSocketCommunicator;
 import facade.ResponseException;
@@ -61,5 +62,7 @@ public class ServerFacade {
     public void wsResign(String authToken, Integer gameID) {ws.resign(authToken, gameID);}
 
     public void wsRedraw(String authToken, Integer gameID) {ws.redraw(authToken, gameID);}
+
+    public void wsHighlight(String authToken, Integer gameID, ChessPosition pos) {ws.highlight(authToken, gameID, pos);}
 
 }

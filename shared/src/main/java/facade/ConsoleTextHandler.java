@@ -7,9 +7,6 @@ import chess.ChessPosition;
 public class ConsoleTextHandler {
 
     public ChessMove textToChessMove(String startPosText, String endPosText, String piecePromText) throws ResponseException {
-        if (startPosText.length() != 2 || endPosText.length() != 2) {
-            throw chessPositionError();
-        }
         ChessPiece.PieceType pieceProm = null;
         if (piecePromText != null) {
             pieceProm = textToPiece(piecePromText);
@@ -17,20 +14,21 @@ public class ConsoleTextHandler {
                 throw new ResponseException(piecePromText + " is not a valid promotion piece.", chessPositionError());
             }
         }
+        ChessPosition startPos = textToChessPosition(startPosText);
+        ChessPosition endPos = textToChessPosition(endPosText);
+        return new ChessMove(startPos, endPos, pieceProm);
+    }
 
-        char startLetter = startPosText.toLowerCase().charAt(0);
-        int startNumber = Character.getNumericValue(startPosText.charAt(1));
-        char endLetter = endPosText.toLowerCase().charAt(0);
-        int endNumber = Character.getNumericValue(endPosText.charAt(1));
-        if (startLetter < 'a' || startLetter > 'h' || startNumber < 1 || startNumber > 8) {
-            throw new ResponseException(startPosText + " is not a valid chess square.", chessPositionError());
-        } else if (endLetter < 'a' || endLetter > 'h' || endNumber < 1 || endNumber > 8) {
-            throw new ResponseException(endPosText + " is not a valid chess square.", chessPositionError());
-        } else {
-            ChessPosition startPos = new ChessPosition(startNumber, letterToNumber(startLetter));
-            ChessPosition endPos = new ChessPosition(endNumber, letterToNumber(endLetter));
-            return new ChessMove(startPos, endPos, pieceProm);
+    public ChessPosition textToChessPosition(String positionText) throws ResponseException {
+        if (positionText.length() != 2) {
+            throw chessPositionError();
         }
+        char startLetter = positionText.toLowerCase().charAt(0);
+        int startNumber = Character.getNumericValue(positionText.charAt(1));
+        if (startLetter < 'a' || startLetter > 'h' || startNumber < 1 || startNumber > 8) {
+            throw new ResponseException(positionText + " is not a valid chess square.", chessPositionError());
+        }
+        return new ChessPosition(startNumber, letterToNumber(startLetter));
     }
 
     public ChessPiece.PieceType textToPiece(String pieceText) {

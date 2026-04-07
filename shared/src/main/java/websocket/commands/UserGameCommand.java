@@ -27,7 +27,8 @@ public class UserGameCommand {
         MAKE_MOVE,
         LEAVE,
         RESIGN,
-        REDRAW
+        REDRAW,
+        HIGHLIGHT
     }
 
     public CommandType getCommandType() {

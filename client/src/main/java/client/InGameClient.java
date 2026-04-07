@@ -2,12 +2,15 @@ package client;
 
 import chess.ChessGame;
 import chess.ChessMove;
+import chess.ChessPosition;
 import client.facade.ServerFacade;
 import facade.ConsoleTextHandler;
 import facade.ResponseException;
 import ui.DrawnChessBoard;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
@@ -50,6 +53,7 @@ public class InGameClient {
         String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
         return switch (cmd) {
             case "redraw" -> redraw();
+            case "highlight" -> highlight(params);
             case "move" -> move(params);
             case "resign" -> resign(scanner);
             case "leave" -> leave();
@@ -61,6 +65,27 @@ public class InGameClient {
     public InGameResult redraw() {
         serverFacade.wsRedraw(authToken, gameID);
         return new InGameResult("", ClientRepl.ClientState.IN_GAME);
+    }
+
+    public InGameResult highlight(String ... params) {
+        if (!(params.length == 1)) {
+            return highlightError();
+        }
+        try {
+            ChessPosition highlightPos = consoleTextHandler.textToChessPosition(params[0]);
+            serverFacade.wsHighlight(authToken, gameID, highlightPos);
+            return new InGameResult("", ClientRepl.ClientState.IN_GAME);
+        } catch (ResponseException ex) {
+            return highlightError();
+        }
+    }
+
+    private InGameResult highlightError(){
+        String cmdResult = """
+                Highlight Error - Expected: highlight <PIECE SQUARE>
+                <PIECE SQUARE> must be a letter followed by a number. Ex: e2 e4, h8 h3, etc.
+                <PIECE SQUARE> must have a piece on top of it.""";
+        return new InGameResult(cmdResult, ClientRepl.ClientState.IN_GAME);
     }
 
     public InGameResult move(String ... params) {
@@ -84,10 +109,10 @@ public class InGameClient {
 
     private InGameResult moveError(){
         String cmdResult = """
-                Make Move Error - Expected: move <Piece Square> <Move-To Square> <OPTIONAL: Pawn Promotes-To Piece>
-                <Piece Square> and <Move-To Square> must be a letter followed by a number. Ex: e2 e4, h8 h3, etc.
-                <Piece Square> must be the square of one of your pieces.
-                <Move-To Square> must be a valid square that the piece can move to. Type 'help' to learn to use 'highlight'.
+                Make Move Error - Expected: move <PIECE SQUARE> <MOVE-TO SQUARE> <OPTIONAL: PAWN PROMOTES-TO PIECE>
+                <PIECE SQUARE> and <MOVE-TO SQUARE> must be a letter followed by a number. Ex: e2 e4, h8 h3, etc.
+                <PIECE SQUARE> must be the square of one of your pieces.
+                <MOVE-TO SQUARE> must be a valid square that the piece can move to. Type 'help' to learn to use 'highlight'.
                 <Pawn Promotes-To Piece> is optional; It only applies to pawns that reach the other team's back rank.""";
         return new InGameResult(cmdResult, ClientRepl.ClientState.IN_GAME);
     }
@@ -123,9 +148,20 @@ public class InGameClient {
         return new InGameResult("", ClientRepl.ClientState.IN_GAME);
     }
 
-    public void loadGame(ChessGame game) {
-        new DrawnChessBoard(game).printBoard(playerColor);
+    public void loadGame(ChessGame game, ChessPosition highlightPosition) {
+        Collection<ChessPosition> highlights = null;
+        if (highlightPosition != null){highlights = highlightMoves(game, highlightPosition);}
+        new DrawnChessBoard(game).printBoard(playerColor, highlightPosition, highlights);
         printPrompt();
+    }
+
+    private Collection<ChessPosition> highlightMoves(ChessGame game, ChessPosition highlightPos) {
+        Collection<ChessMove> validMoves = game.validMoves(highlightPos);
+        Collection<ChessPosition> endPositions = new ArrayList<>();
+        for (ChessMove move : validMoves) {
+            endPositions.add(move.getEndPosition());
+        }
+        return endPositions;
     }
 
     public String help() {

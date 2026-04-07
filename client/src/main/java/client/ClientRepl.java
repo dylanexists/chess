@@ -1,6 +1,7 @@
 package client;
 
 import chess.ChessGame;
+import chess.ChessPosition;
 import client.facade.ServerFacade;
 import client.websocket.ServerMessageObserver;
 import com.google.gson.Gson;
@@ -34,7 +35,10 @@ public class ClientRepl implements ServerMessageObserver {
         switch (sMessage.getServerMessageType()) {
             case NOTIFICATION -> displayNotification((gson.fromJson(message, NotificationMessage.class)).getMessage());
             case ERROR -> displayError((gson.fromJson(message, ErrorMessage.class)).getErrorMessage());
-            case LOAD_GAME -> loadGame((gson.fromJson(message, LoadGameMessage.class)).getGame());
+            case LOAD_GAME -> {
+                loadGame((gson.fromJson(message, LoadGameMessage.class)).getGame(),
+                (gson.fromJson(message, LoadGameMessage.class)).getHighlightPosition());
+            }
         }
     }
 
@@ -50,7 +54,7 @@ public class ClientRepl implements ServerMessageObserver {
         printPromptOfRepl();
     }
 
-    public void loadGame(ChessGame game) {inGame.loadGame(game);}
+    public void loadGame(ChessGame game, ChessPosition highlightPosition) {inGame.loadGame(game, highlightPosition);}
 
     private void printPromptOfRepl() {
         if (state == ClientState.IN_GAME) {inGame.printPrompt();}

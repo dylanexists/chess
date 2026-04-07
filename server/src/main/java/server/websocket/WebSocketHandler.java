@@ -10,6 +10,7 @@ import model.AuthData;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.jetbrains.annotations.NotNull;
+import websocket.commands.HighlightCommand;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
@@ -52,10 +53,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
             switch (command.getCommandType()) {
                 case CONNECT -> connect(playerSession, username, game, command);
-                case MAKE_MOVE -> makeMove(playerSession, username, serialize(wsMessageContext.message(), MakeMoveCommand.class));
+                case MAKE_MOVE -> makeMove(playerSession, username,
+                        serialize(wsMessageContext.message(), MakeMoveCommand.class));
                 case LEAVE -> leave(playerSession, username, command.getGameID());
                 case RESIGN -> resign(playerSession, username, command);
                 case REDRAW -> redraw(playerSession, game);
+                case HIGHLIGHT -> highlight(playerSession, game,
+                        serialize(wsMessageContext.message(), HighlightCommand.class));
             }
         } catch (DataAccessException ex) {
             sendSessionOnlyMessage(session, new ErrorMessage("User or Game not found"));
@@ -107,13 +111,18 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void redraw(PlayerSession playerSession, ChessGame game) {
-        sendSessionOnlyMessage(playerSession.session(), new LoadGameMessage(game));
+        sendSessionOnlyMessage(playerSession.session(), new LoadGameMessage(game, null));
+    }
+
+    private void highlight(PlayerSession playerSession, ChessGame game, HighlightCommand command) {
+        ChessPosition highlightPosition = command.getPosition();
+        sendSessionOnlyMessage(playerSession.session(), new LoadGameMessage(game, highlightPosition));
     }
 
     private void connect(PlayerSession playerSession, String username, ChessGame game, UserGameCommand command) {
         int gameID = command.getGameID();
         connectionMan.add(gameID, playerSession);
-        sendSessionOnlyMessage(playerSession.session(), new LoadGameMessage(game));
+        sendSessionOnlyMessage(playerSession.session(), new LoadGameMessage(game, null));
         String message = username + " has joined the game.";
         var notification = new NotificationMessage(message);
         connectionMan.broadcastNotification(gameID, playerSession.session(), notification);
@@ -129,7 +138,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             ChessPiece piece = game.getBoard().getPiece(move.getStartPosition());
             String movedPiece = consoleTextHandler.pieceToText(piece.getPieceType());
             ChessGame updatedGame = chessMoveLogic(move, game, gameData);
-            connectionMan.broadcastLoadGame(gameID, new LoadGameMessage(updatedGame));
+            connectionMan.broadcastLoadGame(gameID, new LoadGameMessage(updatedGame, null));
             String promotionPiece = (move.getPromotionPiece() != null ? move.getPromotionPiece().name() : "");
             String message = username + " moved their " + movedPiece +
                     " from " + consoleTextHandler.prettyPrintPosition(move.getStartPosition()) +

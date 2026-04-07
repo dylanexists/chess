@@ -279,7 +279,10 @@ public class ChessGame {
                 if (!col1RookPos.equals(new ChessPosition(row, 1))) {return null;} //ensure that rook is in starting chess position
                 ChessPosition oneLeftOfStartKing = new ChessPosition(row,4);
                 ChessPosition twoLeftOfStartKing = new ChessPosition(row,3);
-                castlingMoves.add (checkAddKingCastleMove(color, kingStartPos, oneLeftOfStartKing, twoLeftOfStartKing));
+                ChessMove castleMove = checkAddKingCastleMove(color, kingStartPos, oneLeftOfStartKing, twoLeftOfStartKing);
+                if (castleMove != null) {
+                    castlingMoves.add(castleMove);
+                }
 
             }
             //calculate if castling right is possible
@@ -288,7 +291,10 @@ public class ChessGame {
                 if (!col1RookPos.equals(new ChessPosition(row, 8))) {return null;} //ensure that rook is in starting chess position
                 ChessPosition oneRightOfStartKing = new ChessPosition(row,6);
                 ChessPosition twoRightOfStartKing = new ChessPosition(row,7);
-                castlingMoves.add (checkAddKingCastleMove(color, kingStartPos, oneRightOfStartKing, twoRightOfStartKing));
+                ChessMove castleMove = checkAddKingCastleMove(color, kingStartPos, oneRightOfStartKing, twoRightOfStartKing);
+                if (castleMove != null) {
+                    castlingMoves.add(castleMove);
+                }
             }
         }
         return castlingMoves;
