@@ -36,12 +36,13 @@ public class InGameClient {
         Scanner scanner = new Scanner(System.in);
         InGameResult result;
         drawnChessBoard = new DrawnChessBoard(new ChessGame());
+        connect(); //Websocket connection
         while (true) {
             drawnChessBoard.printBoard(playerColor); //playerColor = null is spectator, printBoard() auto assigns view to white
             printPrompt();
             String line = scanner.nextLine();
             try {
-                result = eval(line);
+                result = eval(line, scanner);
                 System.out.println(result.cmdResult());
                 if (result.nextState() != ClientRepl.ClientState.IN_GAME) {return result;}
             } catch (ResponseException ex) {
@@ -52,12 +53,13 @@ public class InGameClient {
 
     private void printPrompt() {System.out.print("[CHESS GAME] >>> ");}
 
-    public InGameResult eval(String input) {
+    public InGameResult eval(String input, Scanner scanner) {
         String[] tokens = input.split(" ");
         String cmd = (tokens.length > 0) ? tokens[0] : "help";
         String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
         return switch (cmd) {
             case "move" -> move(params);
+            case "resign" -> resign(scanner);
             case "leave" -> leave();
             case "quit" -> new InGameResult("", ClientRepl.ClientState.EXIT);
             default -> new InGameResult(help(), ClientRepl.ClientState.IN_GAME);
@@ -93,6 +95,27 @@ public class InGameClient {
         return new InGameResult(cmdResult, ClientRepl.ClientState.IN_GAME);
     }
 
+    public InGameResult resign(Scanner scanner) {
+        if (confirmationLoop("resign", scanner)) {
+            serverFacade.wsResign(authToken, gameID);
+        }
+        return new InGameResult("", ClientRepl.ClientState.IN_GAME);
+    }
+
+    private boolean confirmationLoop(String action, Scanner scanner) {
+        while (true) {
+            System.out.print("Are you sure you wish to " + action + "? [Y/N] >>> ");
+            String line = scanner.nextLine().trim().toLowerCase();
+            switch (line) {
+                case "y":
+                case "yes": return true;
+                case "n":
+                case "no": return false;
+                default: System.out.println("Please enter 'Y' or 'N'.");
+            }
+        }
+    }
+
     public InGameResult leave() {
         serverFacade.wsLeaveGame(authToken, gameID);
         return new InGameResult("", ClientRepl.ClientState.POST_LOGIN);
@@ -100,7 +123,7 @@ public class InGameClient {
 
     public InGameResult connect() {
         serverFacade.wsConnectGame(authToken, gameID);
-        return new InGameResult("", ClientRepl.ClientState.POST_LOGIN);
+        return new InGameResult("", ClientRepl.ClientState.IN_GAME);
     }
 
     public void loadGame(ChessGame game) {

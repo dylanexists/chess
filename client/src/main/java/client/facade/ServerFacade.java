@@ -58,4 +58,6 @@ public class ServerFacade {
 
     public void wsMakeMove(String authToken, Integer gameID, ChessMove move) {ws.makeMove(authToken, gameID, move);}
 
+    public void wsResign(String authToken, Integer gameID) {ws.resign(authToken, gameID);}
+
 }
