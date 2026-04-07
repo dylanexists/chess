@@ -144,11 +144,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     " from " + consoleTextHandler.prettyPrintPosition(move.getStartPosition()) +
                     " to " + consoleTextHandler.prettyPrintPosition(move.getEndPosition());
             if (!promotionPiece.isEmpty()) {message = message + " and promoted it to a " + promotionPiece + "!";}
+            if (updatedGame.isInCheck(game.getTeamTurn())) {message = message + "\n!!You're king is in check!!";}
             var notification = new NotificationMessage(message);
             connectionMan.broadcastNotification(gameID, playerSession.session(), notification);
             if (updatedGame.isGameOver()) { //if game is over
                 String stringColor = updatedGame.getLoser().name();
-                var gameOverNotification = new NotificationMessage(stringColor + " has lost! Game over!");
+                var gameOverNotification = new NotificationMessage(stringColor + " has lost! Checkmate! Game over!");
                 sendSessionOnlyMessage(playerSession.session(), gameOverNotification);
                 connectionMan.broadcastNotification(gameID, playerSession.session(), gameOverNotification);
             }
