@@ -5,12 +5,13 @@ import client.facade.ServerFacade;
 import client.websocket.ServerMessageObserver;
 import com.google.gson.Gson;
 import facade.ResponseException;
+import ui.DrawnChessBoard;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
-import static ui.EscapeSequences.SET_TEXT_COLOR_RED;
+import static ui.EscapeSequences.*;
 
 public class ClientRepl implements ServerMessageObserver {
     private final Gson gson = new Gson();
@@ -18,6 +19,7 @@ public class ClientRepl implements ServerMessageObserver {
     private final PreLoginClient preLogin;
     private final PostLoginClient postLogin;
     private final InGameClient inGame;
+    ClientState state;
 
     public ClientRepl(String serverUrl) throws ResponseException {
         serverFac = new ServerFacade(serverUrl, this);
@@ -37,17 +39,27 @@ public class ClientRepl implements ServerMessageObserver {
     }
 
     public void displayNotification(String notification) {
-        System.out.println(SET_TEXT_COLOR_RED + "Notif:" + notification);
+        System.out.println(SET_TEXT_COLOR_WHITE + "** " + notification);
+        System.out.println(RESET_TEXT_COLOR);
+        printPromptOfRepl();
     }
 
     public void displayError(String error) {
-        System.out.println(SET_TEXT_COLOR_RED + "Error:" + error);
+        System.out.println(SET_TEXT_COLOR_RED + "Error: " + error);
+        System.out.println(RESET_TEXT_COLOR);
+        printPromptOfRepl();
     }
 
     public void loadGame(ChessGame game) {inGame.loadGame(game);}
 
+    private void printPromptOfRepl() {
+        if (state == ClientState.IN_GAME) {inGame.printPrompt();}
+        else if (state == ClientState.POST_LOGIN) {postLogin.printPrompt();}
+        else if (state == ClientState.PRE_LOGIN) {preLogin.printPrompt();}
+    }
+
     public void run() {
-        ClientState state = ClientState.PRE_LOGIN;
+        state = ClientState.PRE_LOGIN;
         String authToken = null;
         Integer gameID = null;
         ChessGame.TeamColor playerColor = null;

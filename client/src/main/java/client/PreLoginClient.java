@@ -37,7 +37,7 @@ public class PreLoginClient {
         }
     }
 
-    private void printPrompt() {
+    public void printPrompt() {
         System.out.print("[LOGGED_OUT] >>> ");
     }
 

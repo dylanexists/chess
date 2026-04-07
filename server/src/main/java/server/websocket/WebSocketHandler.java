@@ -121,12 +121,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         GameData gameData = gameDao.getGame(gameID);
         ErrorMessage errorMessage = validateMove(username, move, game, gameData);
         if (errorMessage == null) {
+            ChessPiece piece = game.getBoard().getPiece(move.getStartPosition());
+            String movedPiece = consoleTextHandler.pieceToText(piece.getPieceType());
             ChessGame updatedGame = chessMoveLogic(move, game, gameData);
             connectionMan.broadcastLoadGame(gameID, new LoadGameMessage(updatedGame));
             String promotionPiece = (move.getPromotionPiece() != null ? move.getPromotionPiece().name() : "");
-            String message = username + " moved their " + promotionPiece +
+            String message = username + " moved their " + movedPiece +
                     " from " + consoleTextHandler.prettyPrintPosition(move.getStartPosition()) +
                     " to " + consoleTextHandler.prettyPrintPosition(move.getEndPosition());
+            if (!promotionPiece.isEmpty()) {message = message + " and promoted it to a " + promotionPiece + "!";}
             var notification = new NotificationMessage(message);
             connectionMan.broadcastNotification(gameID, playerSession.session(), notification);
             if (updatedGame.isGameOver()) { //if game is over
@@ -193,15 +196,17 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             return new ErrorMessage("It is not yet your turn! Wait for your opponent to play a move.");
         }
         ChessPosition startPos = move.getStartPosition();
-        ChessPiece movingPiece = game.getBoard().getPiece(new ChessPosition(startPos.getRow(), startPos.getColumn()));
-        if (movingPiece == null ||
-            (username.equals(whiteUser) && movingPiece.getTeamColor() != white) ||
+        ChessPiece movingPiece = game.getBoard().getPiece(startPos);
+        if (movingPiece == null) {
+            return new ErrorMessage("There is no piece at " + consoleTextHandler.prettyPrintPosition(startPos) +".");
+        }
+        if ((username.equals(whiteUser) && movingPiece.getTeamColor() != white) ||
             (username.equals(blackUser) && movingPiece.getTeamColor() != black)) {
                 return new ErrorMessage("Invalid move. You can only move your team's pieces.");
         }
         if (!game.validMoves(startPos).contains(move)) {
             return new ErrorMessage("Illegal move. Type 'highlight " +
-                    consoleTextHandler.prettyPrintPosition(startPos) + "' to see that piece's legal moves");
+                    consoleTextHandler.prettyPrintPosition(startPos) + "' to see that piece's legal moves.");
         }
         return null;
     }

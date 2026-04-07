@@ -36,6 +36,7 @@ public class DrawnChessBoard {
         currentBGColor = MY_LIGHT_GREEN; //top left square always light color
         reversed = color == ChessGame.TeamColor.BLACK; //reverse is true if it's black player's view
 
+        drawNewline(out);
         drawHeader(out);
         drawChess(out);
         drawHeader(out);

@@ -45,6 +45,17 @@ public class ConsoleTextHandler {
         };
     }
 
+    public String pieceToText(ChessPiece.PieceType pieceType) {
+        return switch (pieceType) {
+            case ChessPiece.PieceType.PAWN -> "pawn";
+            case ChessPiece.PieceType.ROOK -> "rook";
+            case ChessPiece.PieceType.KNIGHT -> "knight";
+            case ChessPiece.PieceType.BISHOP -> "bishop";
+            case ChessPiece.PieceType.QUEEN -> "queen";
+            case ChessPiece.PieceType.KING -> "king";
+        };
+    }
+
     public String prettyPrintPosition(ChessPosition position) {
         int letterPos = position.getColumn();
         String letter = columnLetters[letterPos - 1];

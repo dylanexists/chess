@@ -23,7 +23,6 @@ public class InGameClient {
     private volatile String authToken;
     private volatile Integer gameID;
     private volatile ChessGame.TeamColor playerColor;
-    private volatile DrawnChessBoard drawnChessBoard;
 
     public InGameClient(ServerFacade serverFac) throws ResponseException {
         serverFacade = serverFac;
@@ -35,7 +34,6 @@ public class InGameClient {
         this.playerColor = playerColor;
         Scanner scanner = new Scanner(System.in);
         InGameResult result;
-        connect(); //Websocket connection
         while (true) {
             printPrompt();
             String line = scanner.nextLine();
@@ -49,7 +47,7 @@ public class InGameClient {
         }
     }
 
-    private void printPrompt() {System.out.print("[CHESS GAME] >>> ");}
+    public void printPrompt() {System.out.print("[CHESS GAME] >>> ");}
 
     public InGameResult eval(String input, Scanner scanner) {
         String[] tokens = input.split(" ");
@@ -126,16 +124,18 @@ public class InGameClient {
 
     public void loadGame(ChessGame game) {
         new DrawnChessBoard(game).printBoard(playerColor);
+        printPrompt();
     }
 
     public String help() {
         return """
-                **Placeholder Help Message**
-                Gameplay has not yet been implemented
-                Type 'leave' to leave Game REPL.
-                Type 'quit' to quit the program.
-                Leaving or quitting does not open up a player slot for the game,
-                this will be fixed in Phase 6.
+                redraw - redraws the chess board
+                highlight <PIECE SQUARE> - highlights the legal moves of the chosen piece
+                move <PIECE SQUARE> <MOVE-TO SQUARE> <OPTIONAL: PAWN PROMOTES-TO PIECE> - moves a piece
+                resign - forfeits the game and gives the opponent the win
+                leave - goes back to pre-game lobby
+                quit - playing chess
+                help - with possible commands
                 """;
     }
 

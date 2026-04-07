@@ -44,7 +44,7 @@ public class PostLoginClient {
         }
     }
 
-    private void printPrompt() {
+    public void printPrompt() {
         System.out.print("[LOGGED_IN] >>> ");
     }
 
@@ -108,7 +108,7 @@ public class PostLoginClient {
         if (params.length == 2) {
             try {
                 String gameIDString = params[0];
-                String playerColorString = params[1];
+                String playerColorString = params[1].toUpperCase();
                 if (!playerColorString.equals("WHITE") && !playerColorString.equals("BLACK")) {
                     return new PostLoginResult("Join Game Error: 'WHITE' and 'BLACK' are the only valid team colors",
                             ClientRepl.ClientState.POST_LOGIN, null, null);
@@ -127,6 +127,7 @@ public class PostLoginClient {
                 int trueGameID = gamesUserInteractable.get(gameID);
                 JoinGameResult joinGameResult = serverFacade.joinGame(new JoinGameRequest(authToken, playerColorString, trueGameID));
                 ChessGame.TeamColor playerColor = playerColorString.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+                serverFacade.wsConnectGame(authToken, trueGameID);
                 return new PostLoginResult("Game " + gameIDString + " successfully joined!",
                         ClientRepl.ClientState.IN_GAME, trueGameID, playerColor);
             } catch (ResponseException ex) {
@@ -159,6 +160,7 @@ public class PostLoginClient {
                     return observeError();
                 }
                 int trueGameID = gamesUserInteractable.get(gameID);
+                serverFacade.wsConnectGame(authToken, trueGameID);
                 return new PostLoginResult("Joining Game " + gameIDString + " to observe!",
                         ClientRepl.ClientState.IN_GAME, trueGameID, null); //null playerColor means spectator
 
